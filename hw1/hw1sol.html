@@ -336,11 +336,23 @@ for char in Elizabeth Jane Lydia Darcy
 do
   echo $char:
   # some commands here
-done</code></pre></li>
+done</code></pre>
+<pre><code>## File ‘pg42671.txt’ already there; not retrieving.
+## 
+## Elizabeth:
+## Jane:
+## Lydia:
+## Darcy:</code></pre>
+<p><strong>Solution</strong> The command wget -nc will not re-download the file from the link if file has already existed</p></li>
 <li><p>What’s the difference between the following two commands?</p>
 <pre class="bash"><code>echo &#39;hello, world&#39; &gt; test1.txt</code></pre>
 <p>and</p>
 <pre class="bash"><code>echo &#39;hello, world&#39; &gt;&gt; test2.txt</code></pre></li>
+</ol>
+<p><strong>Solution</strong></p>
+<p>The ‘&gt;’ will write “hello, world” to test1.txt. If test1.txt already had something written on it, it will be replaced with “hello, world”.</p>
+<p>The ‘&gt;&gt;’ on the other hand will simply append “hello, world” to test2.txt. Therefore, if there exist a previous content in test2.txt, it will not be replaced.</p>
+<ol start="3" style="list-style-type: decimal">
 <li><p>Using your favorite text editor (e.g., <code>vi</code>), type the following and save the file as <code>middle.sh</code>:</p>
 <pre class="bash"><code>#!/bin/sh
 # Select lines from the middle of a file.
@@ -350,6 +362,7 @@ head -n &quot;$2&quot; &quot;$1&quot; | tail -n &quot;$3&quot;</code></pre>
 <pre class="bash"><code>./middle.sh pg42671.txt 20 5</code></pre>
 <p>Explain the output. Explain the meaning of <code>&quot;$1&quot;</code>, <code>&quot;$2&quot;</code>, and <code>&quot;$3&quot;</code> in this shell script. Why do we need the first line of the shell script?</p></li>
 </ol>
+<p><strong>Solution</strong></p>
 <div id="q5.-more-fun-with-linux" class="section level3">
 <h3>Q5. More fun with Linux</h3>
 <p>Try following commands in Bash and interpret the results: <code>cal</code>, <code>cal 2021</code>, <code>cal 9 1752</code> (anything unusual?), <code>date</code>, <code>hostname</code>, <code>arch</code>, <code>uname -a</code>, <code>uptime</code>, <code>who am i</code>, <code>who</code>, <code>w</code>, <code>id</code>, <code>last | head</code>, <code>echo {con,pre}{sent,fer}{s,ed}</code>, <code>time sleep 5</code>, <code>history | tail</code>.</p>

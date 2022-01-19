@@ -137,7 +137,7 @@ zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | uniq -w 8 | wc -l
     wget -nc http://www.gutenberg.org/cache/epub/42671/pg42671.txt
     ```
 Explain what `wget -nc` does. Do **not** put this text file `pg42671.txt` in Git. Complete the following loop to tabulate the number of times each of the four characters is mentioned using Linux commands.
-    ```{bash, eval=FALSE}
+    ```{bash}
     wget -nc http://www.gutenberg.org/cache/epub/42671/pg42671.txt
     for char in Elizabeth Jane Lydia Darcy
     do
@@ -145,6 +145,10 @@ Explain what `wget -nc` does. Do **not** put this text file `pg42671.txt` in Git
       # some commands here
     done
     ```
+**Solution**
+The command wget -nc will not re-download the file from the link if file has 
+already existed
+
 
 2. What's the difference between the following two commands?
     ```{bash eval=FALSE}
@@ -154,6 +158,15 @@ Explain what `wget -nc` does. Do **not** put this text file `pg42671.txt` in Git
     ```{bash eval=FALSE}
     echo 'hello, world' >> test2.txt
     ```
+
+**Solution**
+
+The '>' will write "hello, world" to test1.txt. If test1.txt already had
+something written on it, it will be replaced with "hello, world".
+
+The '>>' on the other hand will simply append "hello, world" to test2.txt.
+Therefore, if there exist a previous content in test2.txt, it will not be
+replaced.
 
 3. Using your favorite text editor (e.g., `vi`), type the following and save the file as `middle.sh`:
     ```{bash eval=FALSE}
@@ -167,6 +180,8 @@ Using `chmod` make the file executable by the owner, and run
     ./middle.sh pg42671.txt 20 5
     ```
 Explain the output. Explain the meaning of `"$1"`, `"$2"`, and `"$3"` in this shell script. Why do we need the first line of the shell script?
+
+**Solution**
 
 ### Q5. More fun with Linux
 
