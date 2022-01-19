@@ -32,6 +32,12 @@ sessionInfo()
 
 This exercise (and later in this course) uses the [MIMIC-IV data](https://mimic-iv.mit.edu), a freely accessible critical care database developed by the MIT Lab for Computational Physiology. Follow the instructions at <https://mimic.mit.edu/docs/gettingstarted/> to (1) complete the CITI `Data or Specimens Only Research` course and (2) obtain the PhysioNet credential for using the MIMIC-IV data. Display the verification links to your completion report and completion certificate here. (Hint: The CITI training takes a couple hours and the PhysioNet credentialing takes a couple days; do not leave it to the last minute.)
 
+**Solution:**
+
+CITI Completion Report link: https://www.citiprogram.org/verify/?k2a099f0f-f293-4d18-855f-f2f487676bf2-46544187
+
+CITI Completion Certificate link: https://www.citiprogram.org/verify/?w52dcb34e-26c2-4c4b-8088-a58a6cd8c732-46544187
+
 ## Q3. Linux Shell Commands
 
 1. The `/mnt/mimiciv/1.0` folder on teaching server contains data sets from MIMIC-IV. Refer to the documentation <https://mimic.mit.edu/docs/iv/> for details of data files.  
@@ -49,7 +55,31 @@ Please, do **not** put these data files into Git; they are big. Do **not** copy 
 ls -l /mnt/mimiciv/1.0/core
 ```
 
+Content of the 'hosp' folder is
+```{bash}
+ls -l /mnt/mimiciv/1.0/hosp
+```
+
+Content of the 'icu' folder is
+```{bash}
+ls -l /mnt/mimiciv/1.0/icu
+```
+
+The files are distributed as .csv.gz because their sizes are too big.
+The .gz format indicates that these folders have been compressed/zipped.
+Therefore, storing them zipped is a wiser option.
+
 3. Briefly describe what bash commands `zcat`, `zless`, `zmore`, and `zgrep` do.
+
+**Solution**
+
+zcat: let you view a compressed .gz file
+
+zless: let you browse through the .gz file flexibly
+
+zmore: let you browse through the .gz file only moving forward
+
+zgrep: let you search using a particular filter in a .gz file
 
 4. What's the output of following bash script?
     ```{bash, eval=F}
@@ -60,9 +90,45 @@ ls -l /mnt/mimiciv/1.0/core
     ```
 Display the number of lines in each data file using a similar loop.
 
+**Solution**
+
+The bash script above will show all the files inside the 'core' directory that
+ends with a .gz (in other words, all the compressed files inside 'core')
+
+To display the number of lines in each data file, we can use:
+```{bash}
+for datafile in /mnt/mimiciv/1.0/core/*.gz
+  do
+    zcat $datafile | wc -l
+  done
+```
+
 5. Display the first few lines of `admissions.csv.gz`. How many rows are in this data file? How many unique patients (identified by `subject_id`) are in this data file? (Hint: combine Linux commands `zcat`, `head`/`tail`, `awk`, `sort`, `uniq`, `wc`, and so on.)
 
+**Solution**
+
+Display the first few lines of admission:
+```{bash}
+zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | head
+```
+
+Number of rows in this data file:
+```{bash}
+zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | wc -l
+```
+
+Number of unique patients:
+```{bash}
+zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | uniq -w 8 | wc -l
+```
+
 6. What are the possible values taken by each of the variable `admission_type`, `admission_location`, `insurance`, and `ethnicity`? Also report the count for each unique value of these variables. (Hint: combine Linux commands `zcat`, `head`/`tail`, `awk`, `uniq -c`, `wc`, and so on.)
+
+**Solution**
+```{bash}
+#zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | uniq -f 1 | head
+```
+
 
 ## Q4. Who's popular in Price and Prejudice
 
