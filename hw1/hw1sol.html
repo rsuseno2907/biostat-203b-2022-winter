@@ -362,10 +362,15 @@ head -n &quot;$2&quot; &quot;$1&quot; | tail -n &quot;$3&quot;</code></pre>
 <pre class="bash"><code>./middle.sh pg42671.txt 20 5</code></pre>
 <p>Explain the output. Explain the meaning of <code>&quot;$1&quot;</code>, <code>&quot;$2&quot;</code>, and <code>&quot;$3&quot;</code> in this shell script. Why do we need the first line of the shell script?</p></li>
 </ol>
-<p><strong>Solution</strong></p>
+<p><strong>Solution</strong> After creating the file, I changed the file permissions using</p>
+<pre class="bash"><code>chmod u+x middle.txt</code></pre>
 <div id="q5.-more-fun-with-linux" class="section level3">
 <h3>Q5. More fun with Linux</h3>
 <p>Try following commands in Bash and interpret the results: <code>cal</code>, <code>cal 2021</code>, <code>cal 9 1752</code> (anything unusual?), <code>date</code>, <code>hostname</code>, <code>arch</code>, <code>uname -a</code>, <code>uptime</code>, <code>who am i</code>, <code>who</code>, <code>w</code>, <code>id</code>, <code>last | head</code>, <code>echo {con,pre}{sent,fer}{s,ed}</code>, <code>time sleep 5</code>, <code>history | tail</code>.</p>
+<p><strong>Solution</strong></p>
+<p>cal -&gt; show current calendar and indicate current date</p>
+<p>cal 2021 -&gt; show the calendar for the year 2021</p>
+<p>cal 9 1752 -&gt; show the calendar for the 9th month (September) of the year 1752 For some reason, the command “cal 9 1752” does not show the date from the 3rd until the 13th of September.</p>
 </div>
 </div>
 

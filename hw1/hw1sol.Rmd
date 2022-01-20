@@ -182,7 +182,22 @@ Using `chmod` make the file executable by the owner, and run
 Explain the output. Explain the meaning of `"$1"`, `"$2"`, and `"$3"` in this shell script. Why do we need the first line of the shell script?
 
 **Solution**
+After creating the file, I changed the file permissions using
+```{bash eval=FALSE}
+chmod u+x middle.txt
+```
+
 
 ### Q5. More fun with Linux
 
 Try following commands in Bash and interpret the results: `cal`, `cal 2021`, `cal 9 1752` (anything unusual?), `date`, `hostname`, `arch`, `uname -a`, `uptime`, `who am i`, `who`, `w`, `id`, `last | head`, `echo {con,pre}{sent,fer}{s,ed}`, `time sleep 5`, `history | tail`.
+
+**Solution**
+
+cal -> show current calendar and indicate current date
+
+cal 2021 -> show the calendar for the year 2021
+
+cal 9 1752 -> show the calendar for the 9th month (September) of the year 1752
+For some reason, the command "cal 9 1752" does not show the date from the 3rd
+until the 13th of September. 
