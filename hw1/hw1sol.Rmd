@@ -194,10 +194,42 @@ Try following commands in Bash and interpret the results: `cal`, `cal 2021`, `ca
 
 **Solution**
 
-cal -> show current calendar and indicate current date
+`cal` -> show current calendar and indicate current date
 
-cal 2021 -> show the calendar for the year 2021
+`cal 2021` -> show the calendar for the year 2021
 
-cal 9 1752 -> show the calendar for the 9th month (September) of the year 1752
-For some reason, the command "cal 9 1752" does not show the date from the 3rd
+`cal 9 1752` -> show the calendar for the 9th month (September) of the year 1752
+.For some reason, the command "cal 9 1752" does not show the date from the 3rd
 until the 13th of September. 
+
+`date` ->  gives us the current time and date
+
+`hostname` -> gives us the name of the server hosting this environment
+
+`arch` -> gives us the processor-bit information 
+
+`uname -a` -> gives us complete system information which includes OS kernel
+name, hostname, kernel release, details like time the last kernel was compiled,
+machine architecture, processor architecture, OS' architecture, OS
+
+`uptime` -> tells us how long has the system been running as well as how many
+users are running it now
+
+`whoami` -> return our username in the server
+
+`who` -> tells you which users are logged in to the server
+
+`w` -> tells you information about when a user logged in, how long have they
+been idle, as well as what they do/run
+
+`id` -> tells you the different ids (uid, gid, groups, context) that you might
+have
+
+`last | head` ->
+
+`echo {con,pre}{sent,fer}{s,ed}` ->
+
+`time sleep 5` -> pauses the execution of command for a given time. In this
+particular example, it's going to pause for 5 seconds
+
+`history | tail` ->

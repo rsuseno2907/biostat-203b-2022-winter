@@ -368,9 +368,22 @@ head -n &quot;$2&quot; &quot;$1&quot; | tail -n &quot;$3&quot;</code></pre>
 <h3>Q5. More fun with Linux</h3>
 <p>Try following commands in Bash and interpret the results: <code>cal</code>, <code>cal 2021</code>, <code>cal 9 1752</code> (anything unusual?), <code>date</code>, <code>hostname</code>, <code>arch</code>, <code>uname -a</code>, <code>uptime</code>, <code>who am i</code>, <code>who</code>, <code>w</code>, <code>id</code>, <code>last | head</code>, <code>echo {con,pre}{sent,fer}{s,ed}</code>, <code>time sleep 5</code>, <code>history | tail</code>.</p>
 <p><strong>Solution</strong></p>
-<p>cal -&gt; show current calendar and indicate current date</p>
-<p>cal 2021 -&gt; show the calendar for the year 2021</p>
-<p>cal 9 1752 -&gt; show the calendar for the 9th month (September) of the year 1752 For some reason, the command “cal 9 1752” does not show the date from the 3rd until the 13th of September.</p>
+<p><code>cal</code> -&gt; show current calendar and indicate current date</p>
+<p><code>cal 2021</code> -&gt; show the calendar for the year 2021</p>
+<p><code>cal 9 1752</code> -&gt; show the calendar for the 9th month (September) of the year 1752 .For some reason, the command “cal 9 1752” does not show the date from the 3rd until the 13th of September.</p>
+<p><code>date</code> -&gt; gives us the current time and date</p>
+<p><code>hostname</code> -&gt; gives us the name of the server hosting this environment</p>
+<p><code>arch</code> -&gt; gives us the processor-bit information</p>
+<p><code>uname -a</code> -&gt; gives us complete system information which includes OS kernel name, hostname, kernel release, details like time the last kernel was compiled, machine architecture, processor architecture, OS’ architecture, OS</p>
+<p><code>uptime</code> -&gt; tells us how long has the system been running as well as how many users are running it now</p>
+<p><code>whoami</code> -&gt; return our username in the server</p>
+<p><code>who</code> -&gt; tells you which users are logged in to the server</p>
+<p><code>w</code> -&gt; tells you information about when a user logged in, how long have they been idle, as well as what they do/run</p>
+<p><code>id</code> -&gt; tells you the different ids (uid, gid, groups, context) that you might have</p>
+<p><code>last | head</code> -&gt;</p>
+<p><code>echo {con,pre}{sent,fer}{s,ed}</code> -&gt;</p>
+<p><code>time sleep 5</code> -&gt; pauses the execution of command for a given time. In this particular example, it’s going to pause for 5 seconds</p>
+<p><code>history | tail</code> -&gt;</p>
 </div>
 </div>
 
