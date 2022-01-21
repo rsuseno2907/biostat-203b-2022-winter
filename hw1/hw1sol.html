@@ -336,13 +336,18 @@ for char in Elizabeth Jane Lydia Darcy
 do
   echo $char:
   # some commands here
+  grep $char pg42671.txt | wc -l
 done</code></pre>
 <pre><code>## File ‘pg42671.txt’ already there; not retrieving.
 ## 
 ## Elizabeth:
+## 633
 ## Jane:
+## 290
 ## Lydia:
-## Darcy:</code></pre>
+## 166
+## Darcy:
+## 414</code></pre>
 <p><strong>Solution</strong> The command wget -nc will not re-download the file from the link if file has already existed</p></li>
 <li><p>What’s the difference between the following two commands?</p>
 <pre class="bash"><code>echo &#39;hello, world&#39; &gt; test1.txt</code></pre>
@@ -364,6 +369,8 @@ head -n &quot;$2&quot; &quot;$1&quot; | tail -n &quot;$3&quot;</code></pre>
 </ol>
 <p><strong>Solution</strong> After creating the file, I changed the file permissions using</p>
 <pre class="bash"><code>chmod u+x middle.txt</code></pre>
+<p>The script first takes the first 20 lines of the file pg42671.txt, and then pipes it to a command that only take the last 5 lines. So in conclusion, the output is line 15-20 of the given text file.</p>
+<p>The <code>&quot;$1&quot;</code> represents the first argument of the middle.sh bash script that we devised, <code>&quot;$2&quot;</code> represents the second argument, and the <code>&quot;$3&quot;</code> represents the third argument needed for the middle.sh script. In our particular example, <code>&quot;$1&quot;</code> will be understood as “pg42671.txt” (string), <code>&quot;$2&quot;</code> is 20 (integer), and <code>&quot;$3&quot;</code> is 5 (integer).</p>
 <div id="q5.-more-fun-with-linux" class="section level3">
 <h3>Q5. More fun with Linux</h3>
 <p>Try following commands in Bash and interpret the results: <code>cal</code>, <code>cal 2021</code>, <code>cal 9 1752</code> (anything unusual?), <code>date</code>, <code>hostname</code>, <code>arch</code>, <code>uname -a</code>, <code>uptime</code>, <code>who am i</code>, <code>who</code>, <code>w</code>, <code>id</code>, <code>last | head</code>, <code>echo {con,pre}{sent,fer}{s,ed}</code>, <code>time sleep 5</code>, <code>history | tail</code>.</p>
@@ -380,10 +387,10 @@ head -n &quot;$2&quot; &quot;$1&quot; | tail -n &quot;$3&quot;</code></pre>
 <p><code>who</code> -&gt; tells you which users are logged in to the server</p>
 <p><code>w</code> -&gt; tells you information about when a user logged in, how long have they been idle, as well as what they do/run</p>
 <p><code>id</code> -&gt; tells you the different ids (uid, gid, groups, context) that you might have</p>
-<p><code>last | head</code> -&gt;</p>
-<p><code>echo {con,pre}{sent,fer}{s,ed}</code> -&gt;</p>
+<p><code>last | head</code> -&gt; display the latest users that logged in to the server</p>
+<p><code>echo {con,pre}{sent,fer}{s,ed}</code> -&gt; print all the different possible words that can be constructed with the given sub-words</p>
 <p><code>time sleep 5</code> -&gt; pauses the execution of command for a given time. In this particular example, it’s going to pause for 5 seconds</p>
-<p><code>history | tail</code> -&gt;</p>
+<p><code>history | tail</code> -&gt; takes in the history of our command lines and pipe it into the tail command, which only display the last 10 command lines executed</p>
 </div>
 </div>
 

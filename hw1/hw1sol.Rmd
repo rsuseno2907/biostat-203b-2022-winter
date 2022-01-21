@@ -143,6 +143,7 @@ Explain what `wget -nc` does. Do **not** put this text file `pg42671.txt` in Git
     do
       echo $char:
       # some commands here
+      grep $char pg42671.txt | wc -l
     done
     ```
 **Solution**
@@ -186,6 +187,15 @@ After creating the file, I changed the file permissions using
 ```{bash eval=FALSE}
 chmod u+x middle.txt
 ```
+The script first takes the first 20 lines of the file pg42671.txt, and then
+pipes it to a command that only take the last 5 lines. So in conclusion, the
+output is line 15-20 of the given text file.
+
+The `"$1"` represents the first argument of the middle.sh bash script that we
+devised, `"$2"` represents the second argument, and the `"$3"` represents the
+third argument needed for the middle.sh script. In our particular example,
+`"$1"` will be understood as "pg42671.txt" (string), `"$2"` is 20 (integer),
+and `"$3"` is 5 (integer).
 
 
 ### Q5. More fun with Linux
@@ -225,11 +235,13 @@ been idle, as well as what they do/run
 `id` -> tells you the different ids (uid, gid, groups, context) that you might
 have
 
-`last | head` ->
+`last | head` -> display the latest users that logged in to the server
 
-`echo {con,pre}{sent,fer}{s,ed}` ->
+`echo {con,pre}{sent,fer}{s,ed}` -> print all the different possible words
+that can be constructed with the given sub-words
 
 `time sleep 5` -> pauses the execution of command for a given time. In this
 particular example, it's going to pause for 5 seconds
 
-`history | tail` ->
+`history | tail` -> takes in the history of our command lines and pipe it into
+the tail command, which only display the last 10 command lines executed
