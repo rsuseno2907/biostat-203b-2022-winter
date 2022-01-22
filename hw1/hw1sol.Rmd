@@ -126,7 +126,10 @@ zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | uniq -w 8 | wc -l
 
 **Solution**
 ```{bash}
-#zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | uniq -f 6 | head
+zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | sed 's/,/ /g' | uniq -f 6 | wc -l
+zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | sed 's/,/ /g' | uniq -f 7 | wc -l
+zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | sed 's/,/ /g' | uniq -f 9 | wc -l
+zcat /mnt/mimiciv/1.0/core/admissions.csv.gz | sed 's/,/ /g' | uniq -f 12 | wc -l
 ```
 
 
