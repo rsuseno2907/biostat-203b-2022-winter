@@ -44,6 +44,16 @@ Which function is fastest? Is there difference in the (default) parsed data type
 
 For later questions, we stick to the tidyverse.
 
+**Solution**
+```{r}
+system.time(read.csv(file="/mnt/mimiciv/1.0/core/admissions.csv.gz"))
+system.time(read_csv("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
+system.time(fread(file="/mnt/mimiciv/1.0/core/admissions.csv.gz"))
+```
+
+fread is the fastest.
+
+
 ## Q2. ICU stays
 
 `icustays.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/icu/icustays/>) contains data about Intensive Care Units (ICU) stays. The first 10 lines are
@@ -59,10 +69,25 @@ system(
 ```
 
 1. Import `icustatys.csv.gz` as a tibble `icustays_tble`. 
+**Solution**
+```{r}
+icustays_tble <- read_csv("/mnt/mimiciv/1.0/icu/icustays.csv.gz")
+icustays_tble
+```
 
 2. How many unique `subject_id`? Can a `subject_id` have multiple ICU stays? 
+```{r}
+by_id <- group_by(icustays_tble, subject_id)
+by_id
+```
+There are 53,150 unique subject_id, whereas there are 76,540 entries in this ICU admission, which means a subject_id can have multiple ICU stays.
+
 
 3. For each `subject_id`, let's only keep the first ICU stay in the tibble `icustays_tble`.
+```{r}
+icustays_tble <- distinct(icustays_tble, subject_id, .keep_all = TRUE)
+icustays_tble
+```
 
 ## Q3. `admission` data
 

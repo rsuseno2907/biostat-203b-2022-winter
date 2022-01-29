@@ -266,6 +266,26 @@ system(str_c(&quot;tree -s -L 2 &quot;, shQuote(mimic_path)), intern = TRUE)</co
 <p>There are quite a few utilities in R for reading plain text data files. Let us test the speed of reading a moderate sized compressed csv file, <code>admissions.csv.gz</code>, by three programs: <code>read.csv</code> in base R, <code>read_csv</code> in tidyverse, and <code>fread</code> in the popular data.table package.</p>
 <p>Which function is fastest? Is there difference in the (default) parsed data types? (Hint: R function <code>system.time</code> measures run times.)</p>
 <p>For later questions, we stick to the tidyverse.</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>system.time(read.csv(file=&quot;/mnt/mimiciv/1.0/core/admissions.csv.gz&quot;))</code></pre>
+<pre><code>##    user  system elapsed 
+##  42.682   0.354  45.910</code></pre>
+<pre class="r"><code>system.time(read_csv(&quot;/mnt/mimiciv/1.0/core/admissions.csv.gz&quot;))</code></pre>
+<pre><code>## Rows: 523740 Columns: 15</code></pre>
+<pre><code>## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr  (7): admission_type, admission_location, discharge_location, insurance,...
+## dbl  (3): subject_id, hadm_id, hospital_expire_flag
+## dttm (5): admittime, dischtime, deathtime, edregtime, edouttime</code></pre>
+<pre><code>## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre><code>##    user  system elapsed 
+##   3.373   0.304   6.560</code></pre>
+<pre class="r"><code>system.time(fread(file=&quot;/mnt/mimiciv/1.0/core/admissions.csv.gz&quot;))</code></pre>
+<pre><code>##    user  system elapsed 
+##   1.702   0.127   1.641</code></pre>
+<p>fread is the fastest.</p>
 </div>
 <div id="q2.-icu-stays" class="section level2">
 <h2>Q2. ICU stays</h2>
@@ -289,10 +309,73 @@ system(str_c(&quot;tree -s -L 2 &quot;, shQuote(mimic_path)), intern = TRUE)</co
 ##  [9] &quot;15914763,28906020,36909804,Trauma SICU (TSICU),Trauma SICU (TSICU),2176-12-14 12:00:00,2176-12-17 11:47:01,2.9909837962962964&quot; 
 ## [10] &quot;16256226,20013290,39289362,Neuro Stepdown,Neuro Stepdown,2150-12-20 16:09:08,2150-12-21 14:58:40,0.9510648148148149&quot;</code></pre>
 <ol style="list-style-type: decimal">
-<li><p>Import <code>icustatys.csv.gz</code> as a tibble <code>icustays_tble</code>.</p></li>
-<li><p>How many unique <code>subject_id</code>? Can a <code>subject_id</code> have multiple ICU stays?</p></li>
-<li><p>For each <code>subject_id</code>, let’s only keep the first ICU stay in the tibble <code>icustays_tble</code>.</p></li>
+<li>Import <code>icustatys.csv.gz</code> as a tibble <code>icustays_tble</code>. <strong>Solution</strong></li>
 </ol>
+<pre class="r"><code>icustays_tble &lt;- read_csv(&quot;/mnt/mimiciv/1.0/icu/icustays.csv.gz&quot;)</code></pre>
+<pre><code>## Rows: 76540 Columns: 8</code></pre>
+<pre><code>## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr  (2): first_careunit, last_careunit
+## dbl  (4): subject_id, hadm_id, stay_id, los
+## dttm (2): intime, outtime</code></pre>
+<pre><code>## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>icustays_tble</code></pre>
+<pre><code>## # A tibble: 76,540 × 8
+##    subject_id  hadm_id  stay_id first_careunit last_careunit intime             
+##         &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;          &lt;chr&gt;         &lt;dttm&gt;             
+##  1   17867402 24528534 31793211 Trauma SICU (… Trauma SICU … 2154-03-03 04:11:00
+##  2   14435996 28960964 31983544 Trauma SICU (… Trauma SICU … 2150-06-19 17:57:00
+##  3   17609946 27385897 33183475 Trauma SICU (… Trauma SICU … 2138-02-05 18:54:00
+##  4   18966770 23483021 34131444 Trauma SICU (… Trauma SICU … 2123-10-25 10:35:00
+##  5   12776735 20817525 34547665 Neuro Stepdown Neuro Stepdo… 2200-07-12 00:33:00
+##  6   10215159 24283593 34569476 Trauma SICU (… Trauma SICU … 2124-09-20 15:05:29
+##  7   14489052 26516390 35056286 Trauma SICU (… Trauma SICU … 2118-10-26 10:33:56
+##  8   15914763 28906020 36909804 Trauma SICU (… Trauma SICU … 2176-12-14 12:00:00
+##  9   16256226 20013290 39289362 Neuro Stepdown Neuro Stepdo… 2150-12-20 16:09:08
+## 10   19194449 21641999 39387567 Coronary Care… Coronary Car… 2123-11-12 02:53:35
+## # … with 76,530 more rows, and 2 more variables: outtime &lt;dttm&gt;, los &lt;dbl&gt;</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>How many unique <code>subject_id</code>? Can a <code>subject_id</code> have multiple ICU stays?</li>
+</ol>
+<pre class="r"><code>by_id &lt;- group_by(icustays_tble, subject_id)
+by_id</code></pre>
+<pre><code>## # A tibble: 76,540 × 8
+## # Groups:   subject_id [53,150]
+##    subject_id  hadm_id  stay_id first_careunit last_careunit intime             
+##         &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;          &lt;chr&gt;         &lt;dttm&gt;             
+##  1   17867402 24528534 31793211 Trauma SICU (… Trauma SICU … 2154-03-03 04:11:00
+##  2   14435996 28960964 31983544 Trauma SICU (… Trauma SICU … 2150-06-19 17:57:00
+##  3   17609946 27385897 33183475 Trauma SICU (… Trauma SICU … 2138-02-05 18:54:00
+##  4   18966770 23483021 34131444 Trauma SICU (… Trauma SICU … 2123-10-25 10:35:00
+##  5   12776735 20817525 34547665 Neuro Stepdown Neuro Stepdo… 2200-07-12 00:33:00
+##  6   10215159 24283593 34569476 Trauma SICU (… Trauma SICU … 2124-09-20 15:05:29
+##  7   14489052 26516390 35056286 Trauma SICU (… Trauma SICU … 2118-10-26 10:33:56
+##  8   15914763 28906020 36909804 Trauma SICU (… Trauma SICU … 2176-12-14 12:00:00
+##  9   16256226 20013290 39289362 Neuro Stepdown Neuro Stepdo… 2150-12-20 16:09:08
+## 10   19194449 21641999 39387567 Coronary Care… Coronary Car… 2123-11-12 02:53:35
+## # … with 76,530 more rows, and 2 more variables: outtime &lt;dttm&gt;, los &lt;dbl&gt;</code></pre>
+<p>There are 53,150 unique subject_id, whereas there are 76,540 entries in this ICU admission, which means a subject_id can have multiple ICU stays.</p>
+<ol start="3" style="list-style-type: decimal">
+<li>For each <code>subject_id</code>, let’s only keep the first ICU stay in the tibble <code>icustays_tble</code>.</li>
+</ol>
+<pre class="r"><code>icustays_tble &lt;- distinct(icustays_tble, subject_id, .keep_all = TRUE)
+icustays_tble</code></pre>
+<pre><code>## # A tibble: 53,150 × 8
+##    subject_id  hadm_id  stay_id first_careunit last_careunit intime             
+##         &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;          &lt;chr&gt;         &lt;dttm&gt;             
+##  1   17867402 24528534 31793211 Trauma SICU (… Trauma SICU … 2154-03-03 04:11:00
+##  2   14435996 28960964 31983544 Trauma SICU (… Trauma SICU … 2150-06-19 17:57:00
+##  3   17609946 27385897 33183475 Trauma SICU (… Trauma SICU … 2138-02-05 18:54:00
+##  4   18966770 23483021 34131444 Trauma SICU (… Trauma SICU … 2123-10-25 10:35:00
+##  5   12776735 20817525 34547665 Neuro Stepdown Neuro Stepdo… 2200-07-12 00:33:00
+##  6   10215159 24283593 34569476 Trauma SICU (… Trauma SICU … 2124-09-20 15:05:29
+##  7   14489052 26516390 35056286 Trauma SICU (… Trauma SICU … 2118-10-26 10:33:56
+##  8   15914763 28906020 36909804 Trauma SICU (… Trauma SICU … 2176-12-14 12:00:00
+##  9   16256226 20013290 39289362 Neuro Stepdown Neuro Stepdo… 2150-12-20 16:09:08
+## 10   19194449 21641999 39387567 Coronary Care… Coronary Car… 2123-11-12 02:53:35
+## # … with 53,140 more rows, and 2 more variables: outtime &lt;dttm&gt;, los &lt;dbl&gt;</code></pre>
 </div>
 <div id="q3.-admission-data" class="section level2">
 <h2>Q3. <code>admission</code> data</h2>
