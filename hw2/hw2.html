@@ -399,9 +399,63 @@ icustays_tble</code></pre>
 ##  [9] &quot;17991012,24298836,2181-07-10 20:28:00,2181-07-12 15:49:00,,ELECTIVE,,HOME,Other,ENGLISH,,WHITE,,,0&quot;                                                                                        
 ## [10] &quot;16865435,23216961,2185-07-19 02:12:00,2185-07-21 11:50:00,,ELECTIVE,,HOME,Other,ENGLISH,,WHITE,,,0&quot;</code></pre>
 <ol style="list-style-type: decimal">
-<li><p>Import <code>admissions.csv.gz</code> as a tibble <code>admissions_tble</code>.</p></li>
-<li><p>Let’s only keep the admissions that have a match in <code>icustays_tble</code> according to <code>subject_id</code> and <code>hadmi_id</code>.</p></li>
-<li><p>Summarize the following variables by graphics.</p></li>
+<li>Import <code>admissions.csv.gz</code> as a tibble <code>admissions_tble</code>.</li>
+</ol>
+<pre class="r"><code>admissions_tble &lt;- read_csv(&quot;/mnt/mimiciv/1.0/core/admissions.csv.gz&quot;)</code></pre>
+<pre><code>## Rows: 523740 Columns: 15</code></pre>
+<pre><code>## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr  (7): admission_type, admission_location, discharge_location, insurance,...
+## dbl  (3): subject_id, hadm_id, hospital_expire_flag
+## dttm (5): admittime, dischtime, deathtime, edregtime, edouttime</code></pre>
+<pre><code>## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>admissions_tble</code></pre>
+<pre><code>## # A tibble: 523,740 × 15
+##    subject_id  hadm_id admittime           dischtime          
+##         &lt;dbl&gt;    &lt;dbl&gt; &lt;dttm&gt;              &lt;dttm&gt;             
+##  1   14679932 21038362 2139-09-26 14:16:00 2139-09-28 11:30:00
+##  2   15585972 24941086 2123-10-07 23:56:00 2123-10-12 11:22:00
+##  3   11989120 21965160 2147-01-14 09:00:00 2147-01-17 14:25:00
+##  4   17817079 24709883 2165-12-27 17:33:00 2165-12-31 21:18:00
+##  5   15078341 23272159 2122-08-28 08:48:00 2122-08-30 12:32:00
+##  6   19124609 20517215 2169-03-14 12:44:00 2169-03-20 19:15:00
+##  7   17301855 29732723 2140-06-06 14:23:00 2140-06-08 14:25:00
+##  8   17991012 24298836 2181-07-10 20:28:00 2181-07-12 15:49:00
+##  9   16865435 23216961 2185-07-19 02:12:00 2185-07-21 11:50:00
+## 10   13693648 21640725 2111-01-30 23:43:00 2111-02-02 13:03:00
+## # … with 523,730 more rows, and 11 more variables: deathtime &lt;dttm&gt;,
+## #   admission_type &lt;chr&gt;, admission_location &lt;chr&gt;, discharge_location &lt;chr&gt;,
+## #   insurance &lt;chr&gt;, language &lt;chr&gt;, marital_status &lt;chr&gt;, ethnicity &lt;chr&gt;,
+## #   edregtime &lt;dttm&gt;, edouttime &lt;dttm&gt;, hospital_expire_flag &lt;dbl&gt;</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>Let’s only keep the admissions that have a match in <code>icustays_tble</code> according to <code>subject_id</code> and <code>hadmi_id</code>.</li>
+</ol>
+<pre class="r"><code>admissions_tble &lt;- inner_join(admissions_tble, 
+                              icustays_tble, 
+                              by=c(&quot;subject_id&quot;, &quot;hadm_id&quot;))
+admissions_tble &lt;- select(admissions_tble, -c(16:21))
+admissions_tble</code></pre>
+<pre><code>## # A tibble: 53,150 × 15
+##    subject_id  hadm_id admittime           dischtime          
+##         &lt;dbl&gt;    &lt;dbl&gt; &lt;dttm&gt;              &lt;dttm&gt;             
+##  1   10222255 28200985 2120-11-20 20:25:00 2120-11-22 13:00:00
+##  2   14485852 28712010 2113-10-31 00:23:00 2113-11-04 16:50:00
+##  3   18709254 23758948 2195-10-12 01:31:00 2195-10-12 13:51:00
+##  4   19119203 21682799 2115-04-01 02:12:00 2115-04-01 15:55:00
+##  5   16837807 23526268 2151-03-19 06:09:00 2151-03-19 07:20:00
+##  6   17642680 27734285 2116-05-29 12:48:00 2116-05-30 12:31:00
+##  7   18230965 21251728 2142-03-12 20:00:00 2142-03-17 15:26:00
+##  8   17374121 27667114 2115-07-22 07:15:00 2115-07-24 17:50:00
+##  9   13346506 28533404 2181-11-19 14:32:00 2181-11-22 18:47:00
+## 10   18030332 24679656 2152-07-22 21:28:00 2152-07-27 16:49:00
+## # … with 53,140 more rows, and 11 more variables: deathtime &lt;dttm&gt;,
+## #   admission_type &lt;chr&gt;, admission_location &lt;chr&gt;, discharge_location &lt;chr&gt;,
+## #   insurance &lt;chr&gt;, language &lt;chr&gt;, marital_status &lt;chr&gt;, ethnicity &lt;chr&gt;,
+## #   edregtime &lt;dttm&gt;, edouttime &lt;dttm&gt;, hospital_expire_flag &lt;dbl&gt;</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Summarize the following variables by graphics.</li>
 </ol>
 <ul>
 <li>admission year<br />
@@ -414,6 +468,26 @@ icustays_tble</code></pre>
 </li>
 <li>admission hour (anything unusual?)</li>
 </ul>
+<pre class="r"><code>group_by(admissions_tble, year(admittime))</code></pre>
+<pre><code>## # A tibble: 523,740 × 16
+## # Groups:   year(admittime) [105]
+##    subject_id  hadm_id admittime           dischtime          
+##         &lt;dbl&gt;    &lt;dbl&gt; &lt;dttm&gt;              &lt;dttm&gt;             
+##  1   14679932 21038362 2139-09-26 14:16:00 2139-09-28 11:30:00
+##  2   15585972 24941086 2123-10-07 23:56:00 2123-10-12 11:22:00
+##  3   11989120 21965160 2147-01-14 09:00:00 2147-01-17 14:25:00
+##  4   17817079 24709883 2165-12-27 17:33:00 2165-12-31 21:18:00
+##  5   15078341 23272159 2122-08-28 08:48:00 2122-08-30 12:32:00
+##  6   19124609 20517215 2169-03-14 12:44:00 2169-03-20 19:15:00
+##  7   17301855 29732723 2140-06-06 14:23:00 2140-06-08 14:25:00
+##  8   17991012 24298836 2181-07-10 20:28:00 2181-07-12 15:49:00
+##  9   16865435 23216961 2185-07-19 02:12:00 2185-07-21 11:50:00
+## 10   13693648 21640725 2111-01-30 23:43:00 2111-02-02 13:03:00
+## # … with 523,730 more rows, and 12 more variables: deathtime &lt;dttm&gt;,
+## #   admission_type &lt;chr&gt;, admission_location &lt;chr&gt;, discharge_location &lt;chr&gt;,
+## #   insurance &lt;chr&gt;, language &lt;chr&gt;, marital_status &lt;chr&gt;, ethnicity &lt;chr&gt;,
+## #   edregtime &lt;dttm&gt;, edouttime &lt;dttm&gt;, hospital_expire_flag &lt;dbl&gt;,
+## #   year(admittime) &lt;dbl&gt;</code></pre>
 </div>
 <div id="q4.-patients-data" class="section level2">
 <h2>Q4. <code>patients</code> data</h2>

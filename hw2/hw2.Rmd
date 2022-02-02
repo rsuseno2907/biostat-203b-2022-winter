@@ -104,8 +104,19 @@ system(
 ```
 
 1. Import `admissions.csv.gz` as a tibble `admissions_tble`.
+```{r}
+admissions_tble <- read_csv("/mnt/mimiciv/1.0/core/admissions.csv.gz")
+admissions_tble
+```
 
 2. Let's only keep the admissions that have a match in `icustays_tble` according to `subject_id` and `hadmi_id`.
+```{r}
+admissions_tble <- inner_join(admissions_tble, 
+                              icustays_tble, 
+                              by=c("subject_id", "hadm_id"))
+admissions_tble <- select(admissions_tble, -c(16:21))
+admissions_tble
+```
 
 3. Summarize the following variables by graphics. 
 
@@ -114,6 +125,11 @@ system(
 - admission month day  
 - admission week day  
 - admission hour (anything unusual?)  
+
+```{r}
+group_by(admissions_tble, year(admittime))
+
+```
 
 ## Q4. `patients` data
 
