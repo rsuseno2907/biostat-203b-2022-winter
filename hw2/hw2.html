@@ -176,12 +176,10 @@ pre code {
 <li><a href="#q2.-icu-stays">Q2. ICU stays</a></li>
 <li><a href="#q3.-admission-data">Q3. <code>admission</code> data</a></li>
 <li><a href="#q4.-patients-data">Q4. <code>patients</code> data</a></li>
-<li><a href="#r-read_csvstr_cmimic_path-hosplabevents.csv.gz-col_select-csubject_id-itemid-charttime-valuenum-col_types-cols_onlysubject_id-col_double-itemid-col_double-charttime-col_datetime-valuenum-col_double-lazy-true-semi_joinicustays_tble-by-csubject_id-filteritemid-in-dlabitems_tbleitemid-printwidth-inf"><code>{r} # read_csv(str_c(mimic_path, &quot;/hosp/labevents.csv.gz&quot;), #      col_select = c(subject_id, itemid, charttime, valuenum), #      col_types = cols_only(subject_id = col_double(),  #                            itemid = col_double(),  #                            charttime = col_datetime(),  #                            valuenum = col_double()), #      lazy = TRUE) %&gt;% # semi_join(icustays_tble, by = c(&quot;subject_id&quot;)) %&gt;% # filter(itemid %in% dlabitems_tble$itemid) %&gt;% # print(width = Inf) #</code></a>
-<ul>
+<li><a href="#q5.-lab-results">Q5. Lab results</a></li>
 <li><a href="#q6.-vitals-from-charted-events">Q6. Vitals from charted events</a></li>
 <li><a href="#q7.-putting-things-together">Q7. Putting things together</a></li>
 <li><a href="#q8.-exploratory-data-analysis-eda">Q8. Exploratory data analysis (EDA)</a></li>
-</ul></li>
 </ul>
 </div>
 
@@ -578,7 +576,10 @@ df</code></pre>
 ## 2 M         62.5      64      91      18</code></pre>
 <pre class="r"><code>#by_anchor &lt;- group_by(patients_tble, anchor_age)
 #by_anchor</code></pre>
-<p>The oldest and youngest patients for either male or female are 91 and 18 respectively. On average, female are hospitalized at the age of 64, whereas male are hospitalized at the age of 62. That is a pretty interesting observation which may mean that older people need more intensive care when they are sick, thus the average and median age are in the range of 60+. The mean and median for female patients are a bit higher than it is of male. ## Q5. Lab results</p>
+<p>The oldest and youngest patients for either male or female are 91 and 18 respectively. On average, female are hospitalized at the age of 64, whereas male are hospitalized at the age of 62. That is a pretty interesting observation which may mean that older people need more intensive care when they are sick, thus the average and median age are in the range of 60+. The mean and median for female patients are a bit higher than it is of male.</p>
+</div>
+<div id="q5.-lab-results" class="section level2">
+<h2>Q5. Lab results</h2>
 <p><code>labevents.csv.gz</code> (<a href="https://mimic.mit.edu/docs/iv/modules/hosp/labevents/" class="uri">https://mimic.mit.edu/docs/iv/modules/hosp/labevents/</a>) contains all laboratory measurements for patients. The first 10 lines are</p>
 <pre class="r"><code>system(
   str_c(
@@ -620,15 +621,78 @@ df</code></pre>
 <ol style="list-style-type: decimal">
 <li>Find how many rows are in <code>labevents.csv.gz</code>.</li>
 </ol>
-</div>
-<div id="r-read_csvstr_cmimic_path-hosplabevents.csv.gz-col_select-csubject_id-itemid-charttime-valuenum-col_types-cols_onlysubject_id-col_double-itemid-col_double-charttime-col_datetime-valuenum-col_double-lazy-true-semi_joinicustays_tble-by-csubject_id-filteritemid-in-dlabitems_tbleitemid-printwidth-inf" class="section level1">
-<h1><code>{r} # read_csv(str_c(mimic_path, &quot;/hosp/labevents.csv.gz&quot;), #      col_select = c(subject_id, itemid, charttime, valuenum), #      col_types = cols_only(subject_id = col_double(),  #                            itemid = col_double(),  #                            charttime = col_datetime(),  #                            valuenum = col_double()), #      lazy = TRUE) %&gt;% # semi_join(icustays_tble, by = c(&quot;subject_id&quot;)) %&gt;% # filter(itemid %in% dlabitems_tble$itemid) %&gt;% # print(width = Inf) #</code></h1>
+<pre class="r"><code>labevents_tble &lt;- 
+  read_csv(&quot;/mnt/mimiciv/1.0/hosp/labevents_filtered_itemid.csv.gz&quot;,
+     col_select = c(subject_id, itemid, charttime, valuenum),
+     col_types = cols_only(subject_id = col_double(),
+                           itemid = col_double(),
+                           charttime = col_datetime(),
+                           valuenum = col_double()),
+     lazy = TRUE) %&gt;%
+semi_join(icustays_tble, by = c(&quot;subject_id&quot;)) %&gt;%
+#filter(itemid %in% dlabitems_tble$itemid) %&gt;%
+print(width = Inf)</code></pre>
+<pre><code>## # A tibble: 16,698,462 × 4
+##    subject_id itemid charttime           valuenum
+##         &lt;dbl&gt;  &lt;dbl&gt; &lt;dttm&gt;                 &lt;dbl&gt;
+##  1   10003700  50882 2162-11-15 17:00:00     27  
+##  2   10003700  50902 2162-11-15 17:00:00    103  
+##  3   10003700  50912 2162-11-15 17:00:00      1  
+##  4   10003700  50931 2162-11-15 17:00:00     93  
+##  5   10003700  50971 2162-11-15 17:00:00      4.1
+##  6   10003700  50983 2162-11-15 17:00:00    141  
+##  7   10003700  51221 2162-11-15 17:00:00     40  
+##  8   10003700  51301 2162-11-15 17:00:00      6.7
+##  9   10003700  51221 2165-04-24 03:40:00     41  
+## 10   10003700  51301 2165-04-24 03:40:00      5.8
+## # … with 16,698,452 more rows</code></pre>
+<p>In <code>labevents_filtered_itemid.csv.gz</code> there are 30,198,826 rows.</p>
 <ol start="2" style="list-style-type: decimal">
 <li><p>We are interested in the lab measurements of creatinine (50912), potassium (50971), sodium (50983), chloride (50902), bicarbonate (50882), hematocrit (51221), white blood cell count (51301), glucose (50931), magnesium (50960), and calcium (50893). Retrieve a subset of <code>labevents.csv.gz</code> only containing these items for the patients in <code>icustays_tble</code> as a tibble <code>labevents_tble</code>.</p>
 <p>Hint: <code>labevents.csv.gz</code> is a data file too big to be read in by the <code>read_csv</code> function in its default setting. Utilize the <code>col_select</code> and <code>lazy</code> options in the <code>read_csv</code> function to reduce the memory burden.</p></li>
-<li><p>Further restrict <code>labevents_tble</code> to the first lab measurement during the ICU stay.</p></li>
-<li><p>Summarize the lab measurements by appropriate numerics and graphics.</p></li>
 </ol>
+<pre class="r"><code>labevents_tble &lt;- labevents_tble %&gt;%  
+  filter(itemid == c(50912, 50971, 50983, 50902, 50882, 51221, 
+                     51301, 50931, 50960, 50893)) %&gt;% 
+print()</code></pre>
+<pre><code>## Warning in itemid == c(50912, 50971, 50983, 50902, 50882, 51221, 51301, : longer
+## object length is not a multiple of shorter object length</code></pre>
+<pre><code>## # A tibble: 1,669,414 × 4
+##    subject_id itemid charttime           valuenum
+##         &lt;dbl&gt;  &lt;dbl&gt; &lt;dttm&gt;                 &lt;dbl&gt;
+##  1   10003700  50912 2165-04-24 03:40:00      0.8
+##  2   10004235  50893 2196-02-24 23:34:00      7.2
+##  3   10004235  50902 2196-02-26 00:28:00     94  
+##  4   10004235  50893 2196-02-26 03:27:00      7.4
+##  5   10004235  50902 2196-02-26 10:25:00     99  
+##  6   10004235  50912 2196-02-26 14:21:00      2.5
+##  7   10004235  51221 2196-02-26 16:30:00     31.5
+##  8   10004235  50971 2196-02-26 18:01:00      4.4
+##  9   10004235  50983 2196-02-26 18:01:00    129  
+## 10   10004235  50912 2196-02-27 10:20:00      1.9
+## # … with 1,669,404 more rows</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Further restrict <code>labevents_tble</code> to the first lab measurement during the ICU stay.</li>
+</ol>
+<pre class="r"><code>distinct(labevents_tble, subject_id, .keep_all = TRUE)</code></pre>
+<pre><code>## # A tibble: 52,282 × 4
+##    subject_id itemid charttime           valuenum
+##         &lt;dbl&gt;  &lt;dbl&gt; &lt;dttm&gt;                 &lt;dbl&gt;
+##  1   10003700  50912 2165-04-24 03:40:00      0.8
+##  2   10004235  50893 2196-02-24 23:34:00      7.2
+##  3   10004720  50912 2184-01-06 15:40:00      0.4
+##  4   10005348  50882 2128-09-01 10:50:00     29  
+##  5   10006580  50893 2137-08-11 04:11:00      8.3
+##  6   10007677  50893 2120-11-16 17:35:00      8.8
+##  7   10009035  51221 2161-04-12 07:45:00     46.6
+##  8   10017851  50912 2115-11-02 03:45:00      2  
+##  9   10018928  50971 2125-02-27 08:00:00      3.5
+## 10   10019003  50960 2148-11-24 08:55:00      2.1
+## # … with 52,272 more rows</code></pre>
+<ol start="4" style="list-style-type: decimal">
+<li>Summarize the lab measurements by appropriate numerics and graphics.</li>
+</ol>
+</div>
 <div id="q6.-vitals-from-charted-events" class="section level2">
 <h2>Q6. Vitals from charted events</h2>
 <p><code>chartevents.csv.gz</code> (<a href="https://mimic.mit.edu/docs/iv/modules/icu/chartevents/" class="uri">https://mimic.mit.edu/docs/iv/modules/icu/chartevents/</a>) contains all the charted data available for a patient. During their ICU stay, the primary repository of a patient’s information is their electronic chart. The <code>itemid</code> variable indicates a single measurement type in the database. The <code>value</code> variable is the value measured for <code>itemid</code>. The first 10 lines of <code>chartevents.csv.gz</code> are</p>
@@ -702,7 +766,6 @@ df</code></pre>
 <li><p><code>thirty_day_mort</code> vs first vital measurements</p></li>
 <li><p><code>thirty_day_mort</code> vs first ICU unit</p></li>
 </ul>
-</div>
 </div>
 
 

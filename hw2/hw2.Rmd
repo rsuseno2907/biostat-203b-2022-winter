@@ -218,7 +218,8 @@ df
 #by_anchor <- group_by(patients_tble, anchor_age)
 #by_anchor
 ```
-The oldest and youngest patients for either male or female are 91 and 18 respectively. On average, female are hospitalized at the age of 64, whereas male are hospitalized at the age of 62. That is a pretty interesting observation which may mean that older people need more intensive care when they are sick, thus the average and median age are in the range of 60+. The mean and median for female patients are a bit higher than it is of male.
+The oldest and youngest patients for either male or female are 91 and 18 respectively. On average, female are hospitalized at the age of 64, whereas male are hospitalized at the age of 62. That is a pretty interesting observation which may mean that older people need more intensive care when they are sick, thus the average and median age are in the range of 60+. The mean and median age for female patients are a bit higher than it is of male.
+
 ## Q5. Lab results
 
 `labevents.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/hosp/labevents/>) contains all laboratory measurements for patients. The first 10 lines are
@@ -245,26 +246,40 @@ system(
 ```
 
 1. Find how many rows are in `labevents.csv.gz`.
-
-# ```{r}
-# read_csv(str_c(mimic_path, "/hosp/labevents.csv.gz"),
-#      col_select = c(subject_id, itemid, charttime, valuenum),
-#      col_types = cols_only(subject_id = col_double(), 
-#                            itemid = col_double(), 
-#                            charttime = col_datetime(), 
-#                            valuenum = col_double()),
-#      lazy = TRUE) %>%
-# semi_join(icustays_tble, by = c("subject_id")) %>%
-# filter(itemid %in% dlabitems_tble$itemid) %>%
-# print(width = Inf)
-# ```
+```{r}
+labevents_tble <- 
+  read_csv("/mnt/mimiciv/1.0/hosp/labevents_filtered_itemid.csv.gz",
+     col_select = c(subject_id, itemid, charttime, valuenum),
+     col_types = cols_only(subject_id = col_double(),
+                           itemid = col_double(),
+                           charttime = col_datetime(),
+                           valuenum = col_double()),
+     lazy = TRUE) %>%
+semi_join(icustays_tble, by = c("subject_id")) %>%
+#filter(itemid %in% dlabitems_tble$itemid) %>%
+print(width = Inf)
+```
+In `labevents_filtered_itemid.csv.gz` there are 30,198,826 rows.
 
 2. We are interested in the lab measurements of creatinine (50912), potassium (50971), sodium (50983), chloride (50902), bicarbonate (50882), hematocrit (51221), white blood cell count (51301), glucose (50931), magnesium (50960), and calcium (50893). Retrieve a subset of `labevents.csv.gz` only containing these items for the patients in `icustays_tble` as a tibble `labevents_tble`. 
 
     Hint: `labevents.csv.gz` is a data file too big to be read in by the `read_csv` function in its default setting. Utilize the `col_select` and `lazy` options in the `read_csv` function to reduce the memory burden.
 
+```{r}
+labevents_tble <- labevents_tble %>%  
+  filter(itemid == c(50912, 50971, 50983, 50902, 50882, 51221, 
+                     51301, 50931, 50960, 50893)) %>% 
+print()
+```
+
 3. Further restrict `labevents_tble` to the first lab measurement during the ICU stay. 
+```{r}
+distinct(labevents_tble, subject_id, .keep_all = TRUE)
+```
+
 4. Summarize the lab measurements by appropriate numerics and graphics. 
+
+
 
 ## Q6. Vitals from charted events
 
