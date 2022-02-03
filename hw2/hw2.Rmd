@@ -127,9 +127,60 @@ admissions_tble
 - admission hour (anything unusual?)  
 
 ```{r}
-group_by(admissions_tble, year(admittime))
-
+admissions_tble %>% 
+  ggplot(aes(x = year(admittime))) + 
+  geom_freqpoly(binwidth=1) +
+  ggtitle("Number of patients admitted throughout the year") +
+  xlab("Year") + ylab("Number of patients")
 ```
+Based on the graph above, it seems like the year with highest admission is 2145. Additionally, starting from the year 2130 to 2189, there seems to be a stable high admission, which then dies down at 2190. Perhaps there was a pandemic during these 59 years period?
+
+```{r}
+admissions_tble %>% 
+  ggplot(aes(x = month(admittime, label = TRUE))) + 
+  geom_bar() +
+  ggtitle("Number of patients admitted throughout different months") +
+  xlab("Month") + ylab("Number of patients") 
+```
+From the graph above, February has the lowest admissions rate which somewhat make sense since it has the lowest number of day (either 28 or 29), making it statistically less likely for a patient to be admitted during the month of February. I think it would be helpful to zoom in so that we get a closer look:
+```{r}
+admissions_tble %>% 
+  ggplot(aes(x = month(admittime, label = TRUE))) + 
+  geom_bar() +
+  ggtitle("Number of patients admitted throughout different months") +
+  xlab("Month") + ylab("Number of patients") +
+  coord_cartesian(ylim = c(40000, 50000)) 
+```
+Here, we can say that August has the highest admissions rate throughout the many years of the hospital admission. April, June, September, and November seem to be on average a little lower than the other months (except February).
+
+```{r}
+admissions_tble %>% 
+  ggplot(aes(x = mday(admittime))) + 
+  geom_bar() +
+  ggtitle("Number of patients admitted throughout different day in months") +
+  xlab("Month Day") + ylab("Number of patients")
+```
+As kind of expected, towards the end there would be less patient being admitted due to the fact that there are less occurence of the 31st and the 30th throughout the year. Generally, the number of patients being admitted is pretty consistent.
+
+```{r}
+admissions_tble %>% 
+  ggplot(aes(x = wday(admittime, label = TRUE))) + 
+  geom_bar() +
+  ggtitle("Number of patients admitted throughout different day in weeks") +
+  xlab("Week Day") + ylab("Number of patients") +
+  coord_cartesian(ylim = c(70000, 80000)) 
+```
+The graph above has already been zoomed so that we can observe the tip of the bar plot. Based on the look of it, Saturday seems to have the highest admission day among others.
+
+```{r}
+admissions_tble %>% 
+  ggplot(aes(x = hour(admittime))) + 
+  geom_bar() +
+  ggtitle("Number of patients admitted throughout different hours") +
+  xlab("Hours") + ylab("Number of patients") 
+  # coord_cartesian(ylim = c(70000, 80000)) 
+```
+Based on my observation, most patients are admitted in the evening or at night, peaking at midnight, as opposed to morning/afternoon.
 
 ## Q4. `patients` data
 
@@ -147,7 +198,23 @@ system(
 
 1. Import `patients.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/core/patients/>) as a tibble `patients_tble` and only keep the patients who have a match in `icustays_tble` (according to `subject_id`).
 
+```{r}
+patients_tble <- read_csv("/mnt/mimiciv/1.0/core/patients.csv.gz")
+patients_tble <- inner_join(patients_tble, icustays_tble, by="subject_id")
+patients_tble <- select(patients_tble, -c(7:13))
+patients_tble
+```
+
 2. Summarize variables `gender` and `anchor_age`, and explain any patterns you see.
+
+```{r}
+by_gender <- group_by(patients_tble, gender)
+summarise(by_gender, avg_age = mean(anchor_age, na.rm = TRUE))
+summarise(by_gender, max_age = max(anchor_age))
+
+#by_anchor <- group_by(patients_tble, anchor_age)
+#by_anchor
+```
 
 ## Q5. Lab results
 
@@ -175,6 +242,19 @@ system(
 ```
 
 1. Find how many rows are in `labevents.csv.gz`.
+
+# ```{r}
+# read_csv(str_c(mimic_path, "/hosp/labevents.csv.gz"),
+#      col_select = c(subject_id, itemid, charttime, valuenum),
+#      col_types = cols_only(subject_id = col_double(), 
+#                            itemid = col_double(), 
+#                            charttime = col_datetime(), 
+#                            valuenum = col_double()),
+#      lazy = TRUE) %>%
+# semi_join(icustays_tble, by = c("subject_id")) %>%
+# filter(itemid %in% dlabitems_tble$itemid) %>%
+# print(width = Inf)
+# ```
 
 2. We are interested in the lab measurements of creatinine (50912), potassium (50971), sodium (50983), chloride (50902), bicarbonate (50882), hematocrit (51221), white blood cell count (51301), glucose (50931), magnesium (50960), and calcium (50893). Retrieve a subset of `labevents.csv.gz` only containing these items for the patients in `icustays_tble` as a tibble `labevents_tble`. 
 
