@@ -321,21 +321,33 @@ system(str_c(&quot;tree -s -L 2 &quot;, shQuote(mimic_path)), intern = TRUE)</co
 <pre><code>## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>icustays_tble</code></pre>
+<pre class="r"><code>print(icustays_tble, width=Inf)</code></pre>
 <pre><code>## # A tibble: 76,540 × 8
-##    subject_id  hadm_id  stay_id first_careunit last_careunit intime             
-##         &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;          &lt;chr&gt;         &lt;dttm&gt;             
-##  1   17867402 24528534 31793211 Trauma SICU (… Trauma SICU … 2154-03-03 04:11:00
-##  2   14435996 28960964 31983544 Trauma SICU (… Trauma SICU … 2150-06-19 17:57:00
-##  3   17609946 27385897 33183475 Trauma SICU (… Trauma SICU … 2138-02-05 18:54:00
-##  4   18966770 23483021 34131444 Trauma SICU (… Trauma SICU … 2123-10-25 10:35:00
-##  5   12776735 20817525 34547665 Neuro Stepdown Neuro Stepdo… 2200-07-12 00:33:00
-##  6   10215159 24283593 34569476 Trauma SICU (… Trauma SICU … 2124-09-20 15:05:29
-##  7   14489052 26516390 35056286 Trauma SICU (… Trauma SICU … 2118-10-26 10:33:56
-##  8   15914763 28906020 36909804 Trauma SICU (… Trauma SICU … 2176-12-14 12:00:00
-##  9   16256226 20013290 39289362 Neuro Stepdown Neuro Stepdo… 2150-12-20 16:09:08
-## 10   19194449 21641999 39387567 Coronary Care… Coronary Car… 2123-11-12 02:53:35
-## # … with 76,530 more rows, and 2 more variables: outtime &lt;dttm&gt;, los &lt;dbl&gt;</code></pre>
+##    subject_id  hadm_id  stay_id first_careunit          
+##         &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;                   
+##  1   17867402 24528534 31793211 Trauma SICU (TSICU)     
+##  2   14435996 28960964 31983544 Trauma SICU (TSICU)     
+##  3   17609946 27385897 33183475 Trauma SICU (TSICU)     
+##  4   18966770 23483021 34131444 Trauma SICU (TSICU)     
+##  5   12776735 20817525 34547665 Neuro Stepdown          
+##  6   10215159 24283593 34569476 Trauma SICU (TSICU)     
+##  7   14489052 26516390 35056286 Trauma SICU (TSICU)     
+##  8   15914763 28906020 36909804 Trauma SICU (TSICU)     
+##  9   16256226 20013290 39289362 Neuro Stepdown          
+## 10   19194449 21641999 39387567 Coronary Care Unit (CCU)
+##    last_careunit            intime              outtime               los
+##    &lt;chr&gt;                    &lt;dttm&gt;              &lt;dttm&gt;              &lt;dbl&gt;
+##  1 Trauma SICU (TSICU)      2154-03-03 04:11:00 2154-03-04 18:16:56 1.59 
+##  2 Trauma SICU (TSICU)      2150-06-19 17:57:00 2150-06-22 18:33:54 3.03 
+##  3 Trauma SICU (TSICU)      2138-02-05 18:54:00 2138-02-15 12:42:05 9.74 
+##  4 Trauma SICU (TSICU)      2123-10-25 10:35:00 2123-10-25 18:59:47 0.351
+##  5 Neuro Stepdown           2200-07-12 00:33:00 2200-07-13 16:44:40 1.67 
+##  6 Trauma SICU (TSICU)      2124-09-20 15:05:29 2124-09-21 22:06:58 1.29 
+##  7 Trauma SICU (TSICU)      2118-10-26 10:33:56 2118-10-26 20:28:10 0.413
+##  8 Trauma SICU (TSICU)      2176-12-14 12:00:00 2176-12-17 11:47:01 2.99 
+##  9 Neuro Stepdown           2150-12-20 16:09:08 2150-12-21 14:58:40 0.951
+## 10 Coronary Care Unit (CCU) 2123-11-12 02:53:35 2123-11-12 13:52:03 0.457
+## # … with 76,530 more rows</code></pre>
 <ol start="2" style="list-style-type: decimal">
 <li>How many unique <code>subject_id</code>? Can a <code>subject_id</code> have multiple ICU stays?</li>
 </ol>
@@ -360,22 +372,48 @@ by_id</code></pre>
 <ol start="3" style="list-style-type: decimal">
 <li>For each <code>subject_id</code>, let’s only keep the first ICU stay in the tibble <code>icustays_tble</code>.</li>
 </ol>
-<pre class="r"><code>icustays_tble &lt;- distinct(icustays_tble, subject_id, .keep_all = TRUE)
-icustays_tble</code></pre>
+<pre class="r"><code>icustays_tble &lt;- icustays_tble %&gt;% 
+  arrange(intime) %&gt;% 
+  distinct(subject_id, .keep_all = TRUE) %&gt;% 
+  print(width = Inf)</code></pre>
 <pre><code>## # A tibble: 53,150 × 8
-##    subject_id  hadm_id  stay_id first_careunit last_careunit intime             
-##         &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;          &lt;chr&gt;         &lt;dttm&gt;             
-##  1   17867402 24528534 31793211 Trauma SICU (… Trauma SICU … 2154-03-03 04:11:00
-##  2   14435996 28960964 31983544 Trauma SICU (… Trauma SICU … 2150-06-19 17:57:00
-##  3   17609946 27385897 33183475 Trauma SICU (… Trauma SICU … 2138-02-05 18:54:00
-##  4   18966770 23483021 34131444 Trauma SICU (… Trauma SICU … 2123-10-25 10:35:00
-##  5   12776735 20817525 34547665 Neuro Stepdown Neuro Stepdo… 2200-07-12 00:33:00
-##  6   10215159 24283593 34569476 Trauma SICU (… Trauma SICU … 2124-09-20 15:05:29
-##  7   14489052 26516390 35056286 Trauma SICU (… Trauma SICU … 2118-10-26 10:33:56
-##  8   15914763 28906020 36909804 Trauma SICU (… Trauma SICU … 2176-12-14 12:00:00
-##  9   16256226 20013290 39289362 Neuro Stepdown Neuro Stepdo… 2150-12-20 16:09:08
-## 10   19194449 21641999 39387567 Coronary Care… Coronary Car… 2123-11-12 02:53:35
-## # … with 53,140 more rows, and 2 more variables: outtime &lt;dttm&gt;, los &lt;dbl&gt;</code></pre>
+##    subject_id  hadm_id  stay_id first_careunit                                  
+##         &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;                                           
+##  1   18106347 24305596 30588857 Cardiac Vascular Intensive Care Unit (CVICU)    
+##  2   17195991 23542772 38319097 Surgical Intensive Care Unit (SICU)             
+##  3   16284044 23864737 36817845 Cardiac Vascular Intensive Care Unit (CVICU)    
+##  4   18122666 23883987 39753527 Medical/Surgical Intensive Care Unit (MICU/SICU)
+##  5   18780420 28977824 32140208 Neuro Surgical Intensive Care Unit (Neuro SICU) 
+##  6   15092543 28768907 38339174 Neuro Intermediate                              
+##  7   13201095 28453791 39953418 Coronary Care Unit (CCU)                        
+##  8   12770182 20446666 34901199 Medical Intensive Care Unit (MICU)              
+##  9   12224263 23294937 37546608 Trauma SICU (TSICU)                             
+## 10   19564586 22461053 37310703 Coronary Care Unit (CCU)                        
+##    last_careunit                                    intime             
+##    &lt;chr&gt;                                            &lt;dttm&gt;             
+##  1 Cardiac Vascular Intensive Care Unit (CVICU)     2110-01-11 10:16:06
+##  2 Surgical Intensive Care Unit (SICU)              2110-01-12 00:54:00
+##  3 Cardiac Vascular Intensive Care Unit (CVICU)     2110-01-13 09:09:40
+##  4 Medical/Surgical Intensive Care Unit (MICU/SICU) 2110-01-14 07:22:00
+##  5 Neuro Surgical Intensive Care Unit (Neuro SICU)  2110-01-17 00:28:00
+##  6 Neuro Intermediate                               2110-01-17 22:49:13
+##  7 Coronary Care Unit (CCU)                         2110-01-18 14:46:27
+##  8 Medical Intensive Care Unit (MICU)               2110-01-18 17:47:47
+##  9 Trauma SICU (TSICU)                              2110-01-20 14:01:00
+## 10 Coronary Care Unit (CCU)                         2110-01-20 21:06:30
+##    outtime               los
+##    &lt;dttm&gt;              &lt;dbl&gt;
+##  1 2110-01-12 17:17:47 1.29 
+##  2 2110-01-14 22:07:39 2.88 
+##  3 2110-01-15 21:45:33 2.52 
+##  4 2110-01-15 13:08:36 1.24 
+##  5 2110-01-18 01:21:22 1.04 
+##  6 2110-01-18 17:18:51 0.771
+##  7 2110-01-25 12:42:11 6.91 
+##  8 2110-01-20 22:25:09 2.19 
+##  9 2110-01-21 17:21:26 1.14 
+## 10 2110-01-22 16:08:24 1.79 
+## # … with 53,140 more rows</code></pre>
 </div>
 <div id="q3.-admission-data" class="section level2">
 <h2>Q3. <code>admission</code> data</h2>
@@ -576,7 +614,7 @@ df</code></pre>
 ## 2 M         62.5      64      91      18</code></pre>
 <pre class="r"><code>#by_anchor &lt;- group_by(patients_tble, anchor_age)
 #by_anchor</code></pre>
-<p>The oldest and youngest patients for either male or female are 91 and 18 respectively. On average, female are hospitalized at the age of 64, whereas male are hospitalized at the age of 62. That is a pretty interesting observation which may mean that older people need more intensive care when they are sick, thus the average and median age are in the range of 60+. The mean and median for female patients are a bit higher than it is of male.</p>
+<p>The oldest and youngest patients for either male or female are 91 and 18 respectively. On average, female are hospitalized at the age of 64, whereas male are hospitalized at the age of 62. That is a pretty interesting observation which may mean that older people need more intensive care when they are sick, thus the average and median age are in the range of 60+. The mean and median age for female patients are a bit higher than it is of male.</p>
 </div>
 <div id="q5.-lab-results" class="section level2">
 <h2>Q5. Lab results</h2>
@@ -630,7 +668,6 @@ df</code></pre>
                            valuenum = col_double()),
      lazy = TRUE) %&gt;%
 semi_join(icustays_tble, by = c(&quot;subject_id&quot;)) %&gt;%
-#filter(itemid %in% dlabitems_tble$itemid) %&gt;%
 print(width = Inf)</code></pre>
 <pre><code>## # A tibble: 16,698,462 × 4
 ##    subject_id itemid charttime           valuenum
@@ -646,7 +683,25 @@ print(width = Inf)</code></pre>
 ##  9   10003700  51221 2165-04-24 03:40:00     41  
 ## 10   10003700  51301 2165-04-24 03:40:00      5.8
 ## # … with 16,698,452 more rows</code></pre>
-<p>In <code>labevents_filtered_itemid.csv.gz</code> there are 30,198,826 rows.</p>
+<p>In <code>labevents_filtered_itemid.csv.gz</code> there are 30,198,826 rows. Only joining them with icustays_tble according to the subject_id gave us 16,698,462 rows.</p>
+<pre class="r"><code>by_id &lt;- group_by(labevents_tble, subject_id)
+by_id</code></pre>
+<pre><code>## # A tibble: 16,698,462 × 4
+## # Groups:   subject_id [53,097]
+##    subject_id itemid charttime           valuenum
+##         &lt;dbl&gt;  &lt;dbl&gt; &lt;dttm&gt;                 &lt;dbl&gt;
+##  1   10003700  50882 2162-11-15 17:00:00     27  
+##  2   10003700  50902 2162-11-15 17:00:00    103  
+##  3   10003700  50912 2162-11-15 17:00:00      1  
+##  4   10003700  50931 2162-11-15 17:00:00     93  
+##  5   10003700  50971 2162-11-15 17:00:00      4.1
+##  6   10003700  50983 2162-11-15 17:00:00    141  
+##  7   10003700  51221 2162-11-15 17:00:00     40  
+##  8   10003700  51301 2162-11-15 17:00:00      6.7
+##  9   10003700  51221 2165-04-24 03:40:00     41  
+## 10   10003700  51301 2165-04-24 03:40:00      5.8
+## # … with 16,698,452 more rows</code></pre>
+<p>This means there are 53,097 distinct patients. Not all 53,150 patients are here in the filtered labevents data.</p>
 <ol start="2" style="list-style-type: decimal">
 <li><p>We are interested in the lab measurements of creatinine (50912), potassium (50971), sodium (50983), chloride (50902), bicarbonate (50882), hematocrit (51221), white blood cell count (51301), glucose (50931), magnesium (50960), and calcium (50893). Retrieve a subset of <code>labevents.csv.gz</code> only containing these items for the patients in <code>icustays_tble</code> as a tibble <code>labevents_tble</code>.</p>
 <p>Hint: <code>labevents.csv.gz</code> is a data file too big to be read in by the <code>read_csv</code> function in its default setting. Utilize the <code>col_select</code> and <code>lazy</code> options in the <code>read_csv</code> function to reduce the memory burden.</p></li>
@@ -654,7 +709,7 @@ print(width = Inf)</code></pre>
 <pre class="r"><code>labevents_tble &lt;- labevents_tble %&gt;%  
   filter(itemid == c(50912, 50971, 50983, 50902, 50882, 51221, 
                      51301, 50931, 50960, 50893)) %&gt;% 
-print()</code></pre>
+  print(width = Inf)</code></pre>
 <pre><code>## Warning in itemid == c(50912, 50971, 50983, 50902, 50882, 51221, 51301, : longer
 ## object length is not a multiple of shorter object length</code></pre>
 <pre><code>## # A tibble: 1,669,414 × 4
@@ -671,23 +726,44 @@ print()</code></pre>
 ##  9   10004235  50983 2196-02-26 18:01:00    129  
 ## 10   10004235  50912 2196-02-27 10:20:00      1.9
 ## # … with 1,669,404 more rows</code></pre>
-<ol start="3" style="list-style-type: decimal">
-<li>Further restrict <code>labevents_tble</code> to the first lab measurement during the ICU stay.</li>
-</ol>
-<pre class="r"><code>distinct(labevents_tble, subject_id, .keep_all = TRUE)</code></pre>
-<pre><code>## # A tibble: 52,282 × 4
+<pre class="r"><code>by_id2 &lt;- group_by(labevents_tble, subject_id)
+by_id2</code></pre>
+<pre><code>## # A tibble: 1,669,414 × 4
+## # Groups:   subject_id [52,282]
 ##    subject_id itemid charttime           valuenum
 ##         &lt;dbl&gt;  &lt;dbl&gt; &lt;dttm&gt;                 &lt;dbl&gt;
 ##  1   10003700  50912 2165-04-24 03:40:00      0.8
 ##  2   10004235  50893 2196-02-24 23:34:00      7.2
-##  3   10004720  50912 2184-01-06 15:40:00      0.4
-##  4   10005348  50882 2128-09-01 10:50:00     29  
-##  5   10006580  50893 2137-08-11 04:11:00      8.3
-##  6   10007677  50893 2120-11-16 17:35:00      8.8
-##  7   10009035  51221 2161-04-12 07:45:00     46.6
-##  8   10017851  50912 2115-11-02 03:45:00      2  
-##  9   10018928  50971 2125-02-27 08:00:00      3.5
-## 10   10019003  50960 2148-11-24 08:55:00      2.1
+##  3   10004235  50902 2196-02-26 00:28:00     94  
+##  4   10004235  50893 2196-02-26 03:27:00      7.4
+##  5   10004235  50902 2196-02-26 10:25:00     99  
+##  6   10004235  50912 2196-02-26 14:21:00      2.5
+##  7   10004235  51221 2196-02-26 16:30:00     31.5
+##  8   10004235  50971 2196-02-26 18:01:00      4.4
+##  9   10004235  50983 2196-02-26 18:01:00    129  
+## 10   10004235  50912 2196-02-27 10:20:00      1.9
+## # … with 1,669,404 more rows</code></pre>
+<p>After filtering only with the itemid of interests, we get 52,282 different subject ID, which means not all patients got these 10 tests, therefore reducing the number of distinct patient from 53,907 to 52,282.</p>
+<ol start="3" style="list-style-type: decimal">
+<li>Further restrict <code>labevents_tble</code> to the first lab measurement during the ICU stay.</li>
+</ol>
+<pre class="r"><code>labevents_tble &lt;- labevents_tble %&gt;% 
+  arrange(charttime) %&gt;% 
+  distinct(subject_id, .keep_all = TRUE) %&gt;% 
+  print(width = Inf)</code></pre>
+<pre><code>## # A tibble: 52,282 × 4
+##    subject_id itemid charttime           valuenum
+##         &lt;dbl&gt;  &lt;dbl&gt; &lt;dttm&gt;                 &lt;dbl&gt;
+##  1   16904137  50971 2105-10-04 17:27:00      3.8
+##  2   15894414  50971 2109-03-11 15:10:00      3.5
+##  3   16617539  50902 2109-03-21 21:46:00    105  
+##  4   12024697  50931 2109-06-14 06:15:00     83  
+##  5   14451627  50882 2109-06-17 13:00:00     27  
+##  6   18585855  50912 2109-06-29 15:50:00      0.9
+##  7   19427894  50912 2109-07-30 11:40:00      1.2
+##  8   11046986  50882 2109-09-14 05:10:00     28  
+##  9   15798883  50912 2109-11-04 09:40:00      1.1
+## 10   17871297  51221 2109-11-27 11:14:00     40.1
 ## # … with 52,272 more rows</code></pre>
 <ol start="4" style="list-style-type: decimal">
 <li>Summarize the lab measurements by appropriate numerics and graphics.</li>
@@ -732,9 +808,58 @@ print()</code></pre>
 ##  [9] &quot;220052,Arterial Blood Pressure mean,ABPm,chartevents,Routine Vital Signs,mmHg,Numeric,,&quot;         
 ## [10] &quot;220056,Arterial Blood Pressure Alarm - Low,ABP Alarm - Low,chartevents,Alarms,mmHg,Numeric,,&quot;</code></pre>
 <ol style="list-style-type: decimal">
-<li><p>We are interested in the vitals for ICU patients: heart rate (220045), mean non-invasive blood pressure (220181), systolic non-invasive blood pressure (220179), body temperature in Fahrenheit (223761), and respiratory rate (220210). Retrieve a subset of <code>chartevents.csv.gz</code> only containing these items for the patients in <code>icustays_tble</code> as a tibble <code>chartevents_tble</code>.</p></li>
-<li><p>Further restrict <code>chartevents_tble</code> to the first vital measurement during the ICU stay.</p></li>
-<li><p>Summarize these vital measurements by appropriate numerics and graphics.</p></li>
+<li>We are interested in the vitals for ICU patients: heart rate (220045), mean non-invasive blood pressure (220181), systolic non-invasive blood pressure (220179), body temperature in Fahrenheit (223761), and respiratory rate (220210). Retrieve a subset of <code>chartevents.csv.gz</code> only containing these items for the patients in <code>icustays_tble</code> as a tibble <code>chartevents_tble</code>.</li>
+</ol>
+<pre class="r"><code>chartevents_tble &lt;- 
+  read_csv(&quot;/mnt/mimiciv/1.0/icu/chartevents_filtered_itemid.csv.gz&quot;,
+     col_select = c(subject_id, itemid, charttime, valuenum),
+     col_types = cols_only(subject_id = col_double(),
+                           itemid = col_double(),
+                           charttime = col_datetime(),
+                           valuenum = col_double()),
+     lazy = TRUE) %&gt;%
+semi_join(icustays_tble, by = c(&quot;subject_id&quot;)) %&gt;%
+filter(itemid == c(220045, 220181, 220179, 223761, 220210)) %&gt;% 
+print(width = Inf)</code></pre>
+<pre><code>## Warning in itemid == c(220045, 220181, 220179, 223761, 220210): longer object
+## length is not a multiple of shorter object length</code></pre>
+<pre><code>## # A tibble: 4,735,364 × 4
+##    subject_id itemid charttime           valuenum
+##         &lt;dbl&gt;  &lt;dbl&gt; &lt;dttm&gt;                 &lt;dbl&gt;
+##  1   10003700 220181 2165-04-24 05:28:00      110
+##  2   10003700 220045 2165-04-24 06:00:00       56
+##  3   10003700 220179 2165-04-24 07:00:00      150
+##  4   10003700 220210 2165-04-24 07:00:00       14
+##  5   10003700 220179 2165-04-24 08:00:00      124
+##  6   10003700 220210 2165-04-24 08:00:00       14
+##  7   10004235 220045 2196-02-24 16:39:00      136
+##  8   10004235 220210 2196-02-24 18:00:00       30
+##  9   10004235 220045 2196-02-24 19:00:00      113
+## 10   10004235 220210 2196-02-24 23:00:00       29
+## # … with 4,735,354 more rows</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>Further restrict <code>chartevents_tble</code> to the first vital measurement during the ICU stay.</li>
+</ol>
+<pre class="r"><code>chartevents_tble &lt;- chartevents_tble %&gt;% 
+  arrange(charttime) %&gt;% 
+  distinct(subject_id, .keep_all = TRUE) %&gt;% 
+  print(width = Inf)</code></pre>
+<pre><code>## # A tibble: 53,122 × 4
+##    subject_id itemid charttime           valuenum
+##         &lt;dbl&gt;  &lt;dbl&gt; &lt;dttm&gt;                 &lt;dbl&gt;
+##  1   18106347 220045 2110-01-11 12:42:00     94  
+##  2   17195991 220045 2110-01-12 01:05:00    129  
+##  3   16284044 220045 2110-01-13 12:30:00     80  
+##  4   18122666 220179 2110-01-14 08:00:00    169  
+##  5   18780420 220045 2110-01-17 03:00:00     63  
+##  6   15092543 220210 2110-01-17 23:00:00     17  
+##  7   13201095 220210 2110-01-18 14:47:00     18  
+##  8   12770182 220045 2110-01-18 23:09:00    120  
+##  9   12224263 220045 2110-01-20 14:14:00     83  
+## 10   19564586 223761 2110-01-20 22:00:00     98.6
+## # … with 53,112 more rows</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Summarize these vital measurements by appropriate numerics and graphics.</li>
 </ol>
 </div>
 <div id="q7.-putting-things-together" class="section level2">
