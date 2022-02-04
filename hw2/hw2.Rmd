@@ -151,7 +151,7 @@ admissions_tble %>%
   geom_bar() +
   ggtitle("Number of patients admitted throughout different months") +
   xlab("Month") + ylab("Number of patients") +
-  coord_cartesian(ylim = c(40000, 50000)) 
+  coord_cartesian(ylim = c(4000, 5000)) 
 ```
 Here, we can say that August has the highest admissions rate throughout the many years of the hospital admission. April, June, September, and November seem to be on average a little lower than the other months (except February).
 
@@ -170,9 +170,9 @@ admissions_tble %>%
   geom_bar() +
   ggtitle("Number of patients admitted throughout different day in weeks") +
   xlab("Week Day") + ylab("Number of patients") +
-  coord_cartesian(ylim = c(70000, 80000)) 
+  coord_cartesian(ylim = c(7000, 8000))
 ```
-The graph above has already been zoomed so that we can observe the tip of the bar plot. Based on the look of it, Saturday seems to have the highest admission day among others.
+The graph above has already been zoomed so that we can observe the tip of the bar plot. Based on the look of it, Monday and Wednesday seem to be the busiest time for admission.
 
 ```{r}
 admissions_tble %>% 
@@ -182,7 +182,7 @@ admissions_tble %>%
   xlab("Hours") + ylab("Number of patients") 
   # coord_cartesian(ylim = c(70000, 80000)) 
 ```
-Based on my observation, most patients are admitted in the evening or at night, peaking at midnight, as opposed to morning/afternoon.
+Based on my observation, most patients are admitted in the evening or at night, peaking at midnight, as opposed to morning/afternoon. There is a peak at 7AM, which I guess is the time when the nurse change shift, so that's when they'll get to check in a lot of people into the hospital.
 
 ## Q4. `patients` data
 
@@ -201,10 +201,10 @@ system(
 1. Import `patients.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/core/patients/>) as a tibble `patients_tble` and only keep the patients who have a match in `icustays_tble` (according to `subject_id`).
 
 ```{r}
-patients_tble <- read_csv("/mnt/mimiciv/1.0/core/patients.csv.gz")
-patients_tble <- inner_join(patients_tble, icustays_tble, by="subject_id")
-patients_tble <- select(patients_tble, -c(7:13))
-patients_tble
+patients_tble <- read_csv("/mnt/mimiciv/1.0/core/patients.csv.gz") %>% 
+  inner_join(icustays_tble, by="subject_id") %>% 
+  select(-c(7:13)) %>% 
+  print(width = Inf)
 ```
 
 2. Summarize variables `gender` and `anchor_age`, and explain any patterns you see.
@@ -216,9 +216,6 @@ df <- summarise(by_gender, avg_age = mean(anchor_age, na.rm = TRUE)) %>%
   mutate(summarise(by_gender, max_age = max(anchor_age, na.rm = TRUE))) %>% 
   mutate(summarise(by_gender, min_age = min(anchor_age, na.rm = TRUE)))
 df
-
-#by_anchor <- group_by(patients_tble, anchor_age)
-#by_anchor
 ```
 The oldest and youngest patients for either male or female are 91 and 18 respectively. On average, female are hospitalized at the age of 64, whereas male are hospitalized at the age of 62. That is a pretty interesting observation which may mean that older people need more intensive care when they are sick, thus the average and median age are in the range of 60+. The mean and median age for female patients are a bit higher than it is of male.
 
