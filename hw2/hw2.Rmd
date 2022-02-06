@@ -261,7 +261,7 @@ labevents_tble <-
   semi_join(icustays_tble, by = c("subject_id")) %>%
   print(width = Inf)
 ```
-In `labevents_filtered_itemid.csv.gz` there are 30,198,826 rows. Only joining them with icustays_tble according to the subject_id gave us 16,698,462 rows.
+In `labevents_filtered_itemid.csv.gz` there are 16,698,462 rows.
 
 ```{r}
 by_id <- group_by(labevents_tble, subject_id)
@@ -280,13 +280,18 @@ rm(by_id)
 3. Further restrict `labevents_tble` to the first lab measurement during the ICU stay. 
 ```{r}
 labevents_tble <- labevents_tble %>% 
-  left_join(icustays_tble, by = "subject_id") %>% 
-  filter(charttime >= intime) %>% 
-  group_by(subject_id) %>% 
-  arrange(charttime, .by_group = TRUE) %>% 
-  slice_head(n=1) %>% #only take first measurement
-  select(-c(5:11)) %>% #exclude anything that was not originally on labevents
-  ungroup() %>% 
+  left_join(select(icustays_tble, subject_id, intime), by = "subject_id") %>% 
+  filter(charttime >= intime) %>%
+  group_by(subject_id, itemid) %>% 
+  arrange(charttime, .by_group = TRUE) %>%
+  slice_head(n = 1) %>% #only take first measurement
+  ungroup() %>%
+  select(-charttime, -intime) %>% 
+  pivot_wider(names_from = itemid, values_from = valuenum) %>%
+  rename(creatinine = "50912", potassium = "50971", sodium = "50983",
+         chloride = "50902", bicarbonate = "50882", hematocrit = "51221",
+         wbc_count = "51301", glucose = "50931",
+         magnesium = "50960", calcium = "50893") %>% 
   print(width = Inf)
 ```
 
@@ -335,13 +340,17 @@ print(width = Inf)
 2. Further restrict `chartevents_tble` to the first vital measurement during the ICU stay. 
 ```{r}
 chartevents_tble <- chartevents_tble %>% 
-  left_join(icustays_tble, by = "subject_id") %>% 
-  filter(charttime >= intime) %>% 
-  group_by(subject_id) %>% 
-  arrange(charttime, .by_group = TRUE) %>% 
-  slice_head(n=1) %>% #only take first measurement
-  select(-c(5:11)) %>% #exclude anything that was not originally on labevents
-  ungroup() %>% 
+  left_join(select(icustays_tble, subject_id, intime), by = "subject_id") %>% 
+  filter(charttime >= intime) %>%
+  group_by(subject_id, itemid) %>% 
+  arrange(charttime, .by_group = TRUE) %>%
+  slice_head(n = 1) %>% #only take first measurement
+  ungroup() %>%
+  select(-charttime, -intime) %>% 
+  pivot_wider(names_from = itemid, values_from = valuenum) %>%
+  rename(heart_rate = "220045", mean_non_invasive_bp = "220181",
+         systolic_non_invasive_bp = "220179", body_temp = "223761",
+         resp_rate = "220210") %>%
   print(width = Inf)
 ```
 
@@ -364,13 +373,19 @@ and columns contain at least following variables
 
 **Solution**
 ```{r}
-mimic_icu_cohort <- inner_join(icustays_tble, 
-                               patients_tble, 
-                               by = "subject_id") %>% 
-  inner_join(admissions_tble, by = c("subject_id", "hadm_id")) %>% 
-  
+mimic_icu_cohort <- 
+  left_join(icustays_tble, patients_tble, by = "subject_id") %>% 
+  left_join(admissions_tble, by = c("subject_id", "hadm_id")) %>% 
+  left_join(labevents_tble, by = "subject_id") %>% 
+  left_join(chartevents_tble, by = "subject_id") %>% 
   print(width = Inf)
 ```
+```{r}
+a <- mutate(mimic_icu_cohort, datime = yday(deathtime) - yday(admittime)) %>% 
+  mutate(z = replace_na(datime,0)) %>%  #replace all NAs in datime
+  mutate(datime = replace(z, z < -300, z + 365))
+```
+
 
 ## Q8. Exploratory data analysis (EDA)
 

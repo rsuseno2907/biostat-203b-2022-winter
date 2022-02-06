@@ -716,7 +716,7 @@ df</code></pre>
 ##  9   10003700  51221 2165-04-24 03:40:00     41  
 ## 10   10003700  51301 2165-04-24 03:40:00      5.8
 ## # … with 16,698,452 more rows</code></pre>
-<p>In <code>labevents_filtered_itemid.csv.gz</code> there are 30,198,826 rows. Only joining them with icustays_tble according to the subject_id gave us 16,698,462 rows.</p>
+<p>In <code>labevents_filtered_itemid.csv.gz</code> there are 16,698,462 rows.</p>
 <pre class="r"><code>by_id &lt;- group_by(labevents_tble, subject_id)
 by_id</code></pre>
 <pre><code>## # A tibble: 16,698,462 × 4
@@ -742,27 +742,44 @@ by_id</code></pre>
 <li><p>Further restrict <code>labevents_tble</code> to the first lab measurement during the ICU stay.</p></li>
 </ol>
 <pre class="r"><code>labevents_tble &lt;- labevents_tble %&gt;% 
-  left_join(icustays_tble, by = &quot;subject_id&quot;) %&gt;% 
-  filter(charttime &gt;= intime) %&gt;% 
-  group_by(subject_id) %&gt;% 
-  arrange(charttime, .by_group = TRUE) %&gt;% 
-  slice_head(n=1) %&gt;% #only take first measurement
-  select(-c(5:11)) %&gt;% #exclude anything that was not originally on labevents
-  ungroup() %&gt;% 
+  left_join(select(icustays_tble, subject_id, intime), by = &quot;subject_id&quot;) %&gt;% 
+  filter(charttime &gt;= intime) %&gt;%
+  group_by(subject_id, itemid) %&gt;% 
+  arrange(charttime, .by_group = TRUE) %&gt;%
+  slice_head(n = 1) %&gt;% #only take first measurement
+  ungroup() %&gt;%
+  select(-charttime, -intime) %&gt;% 
+  pivot_wider(names_from = itemid, values_from = valuenum) %&gt;%
+  rename(creatinine = &quot;50912&quot;, potassium = &quot;50971&quot;, sodium = &quot;50983&quot;,
+         chloride = &quot;50902&quot;, bicarbonate = &quot;50882&quot;, hematocrit = &quot;51221&quot;,
+         wbc_count = &quot;51301&quot;, glucose = &quot;50931&quot;,
+         magnesium = &quot;50960&quot;, calcium = &quot;50893&quot;) %&gt;% 
   print(width = Inf)</code></pre>
-<pre><code>## # A tibble: 52,544 × 4
-##    subject_id itemid charttime           valuenum
-##         &lt;dbl&gt;  &lt;dbl&gt; &lt;dttm&gt;                 &lt;dbl&gt;
-##  1   10000032  50882 2180-07-23 21:45:00     21  
-##  2   10000980  50882 2189-06-28 06:15:00     23  
-##  3   10001217  50882 2157-11-21 03:16:00     23  
-##  4   10001725  50882 2110-04-11 18:02:00     24  
-##  5   10001884  50882 2131-01-11 06:31:00     33  
-##  6   10002013  51221 2160-05-18 13:01:00     28.6
-##  7   10002155  50882 2129-08-04 17:56:00     25  
-##  8   10002223  51221 2158-01-15 13:02:00     32.5
-##  9   10002348  50882 2112-12-01 06:36:00     23  
-## 10   10002428  51221 2156-04-12 19:24:00     28.7
+<pre><code>## # A tibble: 52,544 × 11
+##    subject_id bicarbonate calcium chloride creatinine glucose magnesium
+##         &lt;dbl&gt;       &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;      &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;
+##  1   10000032          21     9.3      102        0.5     115       2.3
+##  2   10000980          23     9.2      103        2.2     144       2  
+##  3   10001217          23     8.2      104        0.4     113       1.9
+##  4   10001725          24     9.1      106        0.8     146       1.5
+##  5   10001884          33     9.8       96        1.1     148       2.2
+##  6   10002013          23     8.2      109        1.1      98       2.1
+##  7   10002155          25     8.8      106        0.9      95       2  
+##  8   10002223          26     8.7      102        0.8      88       2  
+##  9   10002348          23     9.4      107        0.8     127       1.6
+## 10   10002428          20     7.4       98        0.8      99       1.4
+##    potassium sodium hematocrit wbc_count
+##        &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;     &lt;dbl&gt;
+##  1       4.7    132       34.8       4.1
+##  2       4.2    139       30.8       5.4
+##  3       3.6    138       33.6      19  
+##  4       3.9    140       39.1      17  
+##  5       4      136       36        18.4
+##  6       4      140       28.6      18.2
+##  7       4.5    139       37.9       5.5
+##  8       3.9    138       32.5      10.1
+##  9       4.8    142       39.3       4.3
+## 10       3.9    129       28.7      22.4
 ## # … with 52,534 more rows</code></pre>
 <ol start="4" style="list-style-type: decimal">
 <li>Summarize the lab measurements by appropriate numerics and graphics.</li>
@@ -837,27 +854,43 @@ print(width = Inf)</code></pre>
 <li>Further restrict <code>chartevents_tble</code> to the first vital measurement during the ICU stay.</li>
 </ol>
 <pre class="r"><code>chartevents_tble &lt;- chartevents_tble %&gt;% 
-  left_join(icustays_tble, by = &quot;subject_id&quot;) %&gt;% 
-  filter(charttime &gt;= intime) %&gt;% 
-  group_by(subject_id) %&gt;% 
-  arrange(charttime, .by_group = TRUE) %&gt;% 
-  slice_head(n=1) %&gt;% #only take first measurement
-  select(-c(5:11)) %&gt;% #exclude anything that was not originally on labevents
-  ungroup() %&gt;% 
+  left_join(select(icustays_tble, subject_id, intime), by = &quot;subject_id&quot;) %&gt;% 
+  filter(charttime &gt;= intime) %&gt;%
+  group_by(subject_id, itemid) %&gt;% 
+  arrange(charttime, .by_group = TRUE) %&gt;%
+  slice_head(n = 1) %&gt;% #only take first measurement
+  ungroup() %&gt;%
+  select(-charttime, -intime) %&gt;% 
+  pivot_wider(names_from = itemid, values_from = valuenum) %&gt;%
+  rename(heart_rate = &quot;220045&quot;, mean_non_invasive_bp = &quot;220181&quot;,
+         systolic_non_invasive_bp = &quot;220179&quot;, body_temp = &quot;223761&quot;,
+         resp_rate = &quot;220210&quot;) %&gt;%
   print(width = Inf)</code></pre>
-<pre><code>## # A tibble: 53,150 × 4
-##    subject_id itemid charttime           valuenum
-##         &lt;dbl&gt;  &lt;dbl&gt; &lt;dttm&gt;                 &lt;dbl&gt;
-##  1   10000032 223761 2180-07-23 14:00:00     98.7
-##  2   10000980 220210 2189-06-27 08:54:00     23  
-##  3   10001217 220045 2157-11-20 19:19:00     86  
-##  4   10001725 220045 2110-04-11 15:54:00     55  
-##  5   10001884 220045 2131-01-11 04:22:00     38  
-##  6   10002013 220045 2160-05-18 14:07:00     80  
-##  7   10002155 220045 2129-08-04 13:45:00     68  
-##  8   10002223 220045 2158-01-15 08:15:00    100  
-##  9   10002348 223761 2112-11-30 23:31:00     97.9
-## 10   10002428 223761 2156-04-12 17:25:00    103. 
+<pre><code>## # A tibble: 53,150 × 6
+##    subject_id heart_rate systolic_non_invasive_bp mean_non_invasive_bp resp_rate
+##         &lt;dbl&gt;      &lt;dbl&gt;                    &lt;dbl&gt;                &lt;dbl&gt;     &lt;dbl&gt;
+##  1   10000032         91                       84                   56        24
+##  2   10000980         77                      150                   92        23
+##  3   10001217         86                      151                  104        18
+##  4   10001725         55                       73                   59        19
+##  5   10001884         38                      180                   46        10
+##  6   10002013         80                      104                   77        14
+##  7   10002155         68                      126                   78        18
+##  8   10002223        100                      123                   80        29
+##  9   10002348         72                      129                   85        14
+## 10   10002428        124                       87                   53        25
+##    body_temp
+##        &lt;dbl&gt;
+##  1      98.7
+##  2      98  
+##  3      98.5
+##  4      97.7
+##  5      98.1
+##  6      97.2
+##  7      95.9
+##  8      98.6
+##  9      97.9
+## 10     103. 
 ## # … with 53,140 more rows</code></pre>
 <ol start="3" style="list-style-type: decimal">
 <li>Summarize these vital measurements by appropriate numerics and graphics.</li>
