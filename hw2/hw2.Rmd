@@ -296,8 +296,59 @@ labevents_tble <- labevents_tble %>%
 ```
 
 4. Summarize the lab measurements by appropriate numerics and graphics. 
-
-
+```{r}
+sum_lab <- labevents_tble %>% 
+  summarise(avg = c(mean(creatinine, na.rm = TRUE), 
+                     mean(potassium, na.rm = TRUE),
+                     mean(sodium, na.rm = TRUE),
+                     mean(chloride, na.rm = TRUE),
+                     mean(bicarbonate, na.rm = TRUE),
+                     mean(hematocrit, na.rm = TRUE),
+                     mean(wbc_count, na.rm = TRUE),
+                     mean(glucose, na.rm = TRUE),
+                     mean(magnesium, na.rm = TRUE),
+                     mean(calcium, na.rm = TRUE)))
+max <- summarise(labevents_tble, max = c(max(creatinine, na.rm = TRUE), 
+                                         max(potassium, na.rm = TRUE),
+                                         max(sodium, na.rm = TRUE),
+                                         max(chloride, na.rm = TRUE),
+                                         max(bicarbonate, na.rm = TRUE),
+                                         max(hematocrit, na.rm = TRUE),
+                                         max(wbc_count, na.rm = TRUE),
+                                         max(glucose, na.rm = TRUE),
+                                         max(magnesium, na.rm = TRUE),
+                                         max(calcium, na.rm = TRUE)))
+min <- summarise(labevents_tble, min = c(min(creatinine, na.rm = TRUE), 
+                                         min(potassium, na.rm = TRUE),
+                                         min(sodium, na.rm = TRUE),
+                                         min(chloride, na.rm = TRUE),
+                                         min(bicarbonate, na.rm = TRUE),
+                                         min(hematocrit, na.rm = TRUE),
+                                         min(wbc_count, na.rm = TRUE),
+                                         min(glucose, na.rm = TRUE),
+                                         min(magnesium, na.rm = TRUE),
+                                         min(calcium, na.rm = TRUE)))
+med <- summarise(labevents_tble, median = c(median(creatinine, na.rm = TRUE), 
+                                         median(potassium, na.rm = TRUE),
+                                         median(sodium, na.rm = TRUE),
+                                         median(chloride, na.rm = TRUE),
+                                         median(bicarbonate, na.rm = TRUE),
+                                         median(hematocrit, na.rm = TRUE),
+                                         median(wbc_count, na.rm = TRUE),
+                                         median(glucose, na.rm = TRUE),
+                                         median(magnesium, na.rm = TRUE),
+                                         median(calcium, na.rm = TRUE)))
+sum_lab <- sum_lab %>% 
+  mutate(max, min, med) %>% 
+  mutate(measurement = c("creatinine", "potassium",
+                                           "sodium", "chloride", 
+                                           "bicarbonate", "hematocrit",
+                                           "wbc_count", "glucose",
+                                           "magnesium", "calcium")) %>% 
+  relocate(measurement, .before = avg) %>% 
+  print(width = Inf)
+rm(max, min, med)
+```
 
 ## Q6. Vitals from charted events
 
@@ -355,6 +406,42 @@ chartevents_tble <- chartevents_tble %>%
 ```
 
 3. Summarize these vital measurements by appropriate numerics and graphics. 
+```{r}
+sum_vit <- chartevents_tble %>% 
+  summarise(avg = c(mean(heart_rate, na.rm = TRUE), 
+                     mean(mean_non_invasive_bp, na.rm = TRUE),
+                     mean(systolic_non_invasive_bp, na.rm = TRUE),
+                     mean(body_temp, na.rm = TRUE),
+                     mean(resp_rate, na.rm = TRUE)))
+max <- summarise(chartevents_tble, 
+                 max = c(max(heart_rate, na.rm = TRUE), 
+                         max(mean_non_invasive_bp, na.rm = TRUE),
+                         max(systolic_non_invasive_bp, na.rm = TRUE),
+                         max(body_temp, na.rm = TRUE),
+                         max(resp_rate, na.rm = TRUE)))
+min <- summarise(chartevents_tble, 
+                 min = c(min(heart_rate, na.rm = TRUE), 
+                         min(mean_non_invasive_bp, na.rm = TRUE),
+                         min(systolic_non_invasive_bp, na.rm = TRUE),
+                         min(body_temp, na.rm = TRUE),
+                         min(resp_rate, na.rm = TRUE)))
+med <- summarise(chartevents_tble, 
+                 median = c(median(heart_rate, na.rm = TRUE), 
+                         median(mean_non_invasive_bp, na.rm = TRUE),
+                         median(systolic_non_invasive_bp, na.rm = TRUE),
+                         median(body_temp, na.rm = TRUE),
+                         median(resp_rate, na.rm = TRUE)))
+
+sum_vit <- sum_vit %>% 
+  mutate(max, min, med) %>% 
+  mutate(vitals = c("Heart Rate", "Mean non-invasive BP",
+                    "Systolic non-invasive BP", "Body Temperature", 
+                    "Respiration Rate")) %>% 
+  relocate(vitals, .before = avg) %>% 
+  print(width = Inf)
+rm(max, min, med)
+```
+
 
 ## Q7. Putting things together
 
@@ -378,12 +465,17 @@ mimic_icu_cohort <-
   left_join(admissions_tble, by = c("subject_id", "hadm_id")) %>% 
   left_join(labevents_tble, by = "subject_id") %>% 
   left_join(chartevents_tble, by = "subject_id") %>% 
+  mutate(age_hadm = anchor_age + year(admittime) - anchor_year) %>% 
+  filter(age_hadm > 18) %>% 
+  mutate(shinda = difftime(deathtime, admittime, units = c("days"))) %>% 
+  mutate(shinda = replace_na(shinda, ddays(0))) %>%  #replace all NAs with 0
+  mutate(thirty_days_mort = ifelse(shinda < 30 & shinda != 0, "Yes", "No")) %>%
+  select(-shinda) %>% 
   print(width = Inf)
 ```
 ```{r}
-a <- mutate(mimic_icu_cohort, datime = yday(deathtime) - yday(admittime)) %>% 
-  mutate(z = replace_na(datime,0)) %>%  #replace all NAs in datime
-  mutate(datime = replace(z, z < -300, z + 365))
+count <- count(mimic_icu_cohort, thirty_days_mort)
+mean(mimic_icu_cohort$admittime, na.rm = TRUE)
 ```
 
 
