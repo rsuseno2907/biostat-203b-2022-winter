@@ -349,6 +349,7 @@ sum_lab <- sum_lab %>%
   print(width = Inf)
 rm(max, min, med)
 ```
+As we might observe here, a "max" in the glucose level is 2440. This might indicate either an outlier or a very sick person with excessive level of glucose.
 
 ## Q6. Vitals from charted events
 
@@ -441,7 +442,7 @@ sum_vit <- sum_vit %>%
   print(width = Inf)
 rm(max, min, med)
 ```
-
+The mean non-invasive blood pressure and systolic non-invasive blood pressure seem to have outliers on their data, as shown by the maximum values here. It is physiologically impossible for you to reach over 10,000 mmHg, yet alone 140k mmHg. This one is most definitely an outlier, either a measurement error or an error when data is collected.
 
 ## Q7. Putting things together
 
@@ -475,7 +476,6 @@ mimic_icu_cohort <-
 ```
 ```{r}
 count <- count(mimic_icu_cohort, thirty_days_mort)
-mean(mimic_icu_cohort$admittime, na.rm = TRUE)
 ```
 
 
@@ -490,3 +490,75 @@ Summarize following information using appropriate numerics or graphs.
 - `thirty_day_mort` vs first vital measurements
 
 - `thirty_day_mort` vs first ICU unit
+
+**Solution**
+At first, I was thinking about creating a bar graph to see how many people of certain ethnicity die within 30 days of admissions. But seeing a bias in the data where `WHITE` patients are overwhelmingly abundant, (67% of the data), creating a bar graph for counting won't be too helpful. So instead, I created a dataframe that has the number of patient in a certain ethnicity, as well as the number of patient who died within 30 days of a certain ethnicity. Then, I found the percentage of patients who died within 30 days in a certain ethnicity group.
+```{r}
+by_ethnicity <- group_by(mimic_icu_cohort, by = ethnicity)
+sum <- summarise(by_ethnicity, count = n())
+a <- count(by_ethnicity, thirty_days_mort)
+sum <- sum %>% 
+  mutate(filter(a, thirty_days_mort == "Yes")) %>% 
+  select(-thirty_days_mort) %>% 
+  mutate(perc = (n/count)*100) %>% 
+  rename(ethnicity = "by", 
+         number_of_patient = "count", 
+         patient_30days_mort = "n") %>% 
+  print(width = Inf)
+```
+With regards to gender, we can simply find the number of males who died within 30 days of admissions, and the number of females who died within 30 days of admissions.
+```{r}
+by_gender <- group_by(mimic_icu_cohort, by = gender) %>% 
+  count(thirty_days_mort) %>% 
+  print()
+```
+For age, I was thinking about creating a data interval or range (for age 19-28, 29-38, 39-48, etc.) or split it up by life stage (teens, adults, elderly, or other groups). But I haven't had enough exposure to perform those fancy categorization. I can probably do it later once I do more practice with dplyr.
+
+
+Insurance-wise, I think it's interesting to know, if you're an insurance provider, how many people died under your insurance name. So for now, I simply count how many people died within 30 days of admission who uses the Medicare (2766), the Medicaid (297), and others (2147). Again, there's a potential bias here considering an insurance might be a monopoly so that everyone uses Medicare for instance.
+```{r}
+by_ins <-group_by(mimic_icu_cohort, by=insurance)%>% 
+  count(thirty_days_mort) %>% 
+  print()
+```
+
+
+The following dataframe will allow us to see whether patients who died within 30 days of admission have a generally higher or lower level of certain measurements, whether it be lab or vital measurements. A great addition to this dataframe would be a row with the ideal level of measurements to observe any trend that might be of interest from looking at the average level of patients who died within 30 days of admission.
+```{r}
+by_mort <- group_by(mimic_icu_cohort, by = thirty_days_mort)
+mort_df <- summarise(by_mort, count = n()) %>% 
+  mutate(summarise(by_mort, 
+                   avg_creatinine = mean(creatinine, na.rm = TRUE))) %>% 
+  mutate(summarise(by_mort, 
+                   avg_potassium = mean(potassium, na.rm = TRUE))) %>% 
+  mutate(summarise(by_mort, 
+                   avg_sodium = mean(sodium, na.rm = TRUE))) %>%
+  mutate(summarise(by_mort, 
+                   avg_chloride = mean(chloride, na.rm = TRUE))) %>%
+  mutate(summarise(by_mort, 
+                   avg_bicarbonate = mean(bicarbonate, na.rm = TRUE))) %>%
+  mutate(summarise(by_mort, 
+                   avg_hematocrit = mean(hematocrit, na.rm = TRUE))) %>%
+  mutate(summarise(by_mort, 
+                   avg_wbc_count = mean(wbc_count, na.rm = TRUE))) %>%
+  mutate(summarise(by_mort, 
+                   avg_glucose = mean(glucose, na.rm = TRUE))) %>%
+  mutate(summarise(by_mort, 
+                   avg_magnesium = mean(magnesium, na.rm = TRUE))) %>%
+  mutate(summarise(by_mort, 
+                   avg_calcium = mean(calcium, na.rm = TRUE))) %>% 
+  mutate(summarise(by_mort, 
+                   avg_heartRate = mean(heart_rate, na.rm = TRUE))) %>%
+  mutate(summarise(by_mort, 
+                   avg_mean_non_invasive_bp = mean(mean_non_invasive_bp, 
+                                                   na.rm = TRUE))) %>%
+  mutate(summarise(by_mort, 
+                   avg_syst_non_invasive_bp = mean(systolic_non_invasive_bp, 
+                                                   na.rm = TRUE))) %>%
+  mutate(summarise(by_mort, 
+                   avg_temperature = mean(body_temp, na.rm = TRUE))) %>%
+  mutate(summarise(by_mort, 
+                   avg_respiration_rate = mean(resp_rate, na.rm = TRUE))) %>% 
+  rename(thirty_days_mort = "by") %>% 
+  print(width = Inf)
+```

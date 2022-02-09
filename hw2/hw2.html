@@ -848,6 +848,7 @@ sum_lab &lt;- sum_lab %&gt;%
 ##  9 magnesium     2.00   47     0      2  
 ## 10 calcium       8.37   43     0      8.4</code></pre>
 <pre class="r"><code>rm(max, min, med)</code></pre>
+<p>As we might observe here, a “max” in the glucose level is 2440. This might indicate either an outlier or a very sick person with excessive level of glucose.</p>
 </div>
 <div id="q6.-vitals-from-charted-events" class="section level2">
 <h2>Q6. Vitals from charted events</h2>
@@ -1000,6 +1001,7 @@ sum_vit &lt;- sum_vit %&gt;%
 ## 4 Body Temperature          98.0    106     0   98.1
 ## 5 Respiration Rate          18.7    180     0   18</code></pre>
 <pre class="r"><code>rm(max, min, med)</code></pre>
+<p>The mean non-invasive blood pressure and systolic non-invasive blood pressure seem to have outliers on their data, as shown by the maximum values here. It is physiologically impossible for you to reach over 10,000 mmHg, yet alone 140k mmHg. This one is most definitely an outlier, either a measurement error or an error when data is collected.</p>
 </div>
 <div id="q7.-putting-things-together" class="section level2">
 <h2>Q7. Putting things together</h2>
@@ -1155,9 +1157,7 @@ sum_vit &lt;- sum_vit %&gt;%
 ##  9 No              
 ## 10 No              
 ## # … with 53,055 more rows</code></pre>
-<pre class="r"><code>count &lt;- count(mimic_icu_cohort, thirty_days_mort)
-mean(mimic_icu_cohort$admittime, na.rm = TRUE)</code></pre>
-<pre><code>## [1] &quot;2152-10-27 02:08:14 UTC&quot;</code></pre>
+<pre class="r"><code>count &lt;- count(mimic_icu_cohort, thirty_days_mort)</code></pre>
 </div>
 <div id="q8.-exploratory-data-analysis-eda" class="section level2">
 <h2>Q8. Exploratory data analysis (EDA)</h2>
@@ -1168,6 +1168,110 @@ mean(mimic_icu_cohort$admittime, na.rm = TRUE)</code></pre>
 <li><p><code>thirty_day_mort</code> vs first vital measurements</p></li>
 <li><p><code>thirty_day_mort</code> vs first ICU unit</p></li>
 </ul>
+<p><strong>Solution</strong> At first, I was thinking about creating a bar graph to see how many people of certain ethnicity die within 30 days of admissions. But seeing a bias in the data where <code>WHITE</code> patients are overwhelmingly abundant, (67% of the data), creating a bar graph for counting won’t be too helpful. So instead, I created a dataframe that has the number of patient in a certain ethnicity, as well as the number of patient who died within 30 days of a certain ethnicity. Then, I found the percentage of patients who died within 30 days in a certain ethnicity group.</p>
+<pre class="r"><code>by_ethnicity &lt;- group_by(mimic_icu_cohort, by = ethnicity)
+sum &lt;- summarise(by_ethnicity, count = n())
+a &lt;- count(by_ethnicity, thirty_days_mort)
+sum &lt;- sum %&gt;% 
+  mutate(filter(a, thirty_days_mort == &quot;Yes&quot;)) %&gt;% 
+  select(-thirty_days_mort) %&gt;% 
+  mutate(perc = (n/count)*100) %&gt;% 
+  rename(ethnicity = &quot;by&quot;, 
+         number_of_patient = &quot;count&quot;, 
+         patient_30days_mort = &quot;n&quot;) %&gt;% 
+  print(width = Inf)</code></pre>
+<pre><code>## # A tibble: 8 × 4
+##   ethnicity                     number_of_patient patient_30days_mort  perc
+##   &lt;chr&gt;                                     &lt;int&gt;               &lt;int&gt; &lt;dbl&gt;
+## 1 AMERICAN INDIAN/ALASKA NATIVE                94                   7  7.45
+## 2 ASIAN                                      1561                 161 10.3 
+## 3 BLACK/AFRICAN AMERICAN                     4867                 380  7.81
+## 4 HISPANIC/LATINO                            1821                 115  6.32
+## 5 OTHER                                      2530                 211  8.34
+## 6 UNABLE TO OBTAIN                            755                 119 15.8 
+## 7 UNKNOWN                                    5811                1135 19.5 
+## 8 WHITE                                     35626                3082  8.65</code></pre>
+<p>With regards to gender, we can simply find the number of males who died within 30 days of admissions, and the number of females who died within 30 days of admissions.</p>
+<pre class="r"><code>by_gender &lt;- group_by(mimic_icu_cohort, by = gender) %&gt;% 
+  count(thirty_days_mort) %&gt;% 
+  print()</code></pre>
+<pre><code>## # A tibble: 4 × 3
+## # Groups:   by [2]
+##   by    thirty_days_mort     n
+##   &lt;chr&gt; &lt;chr&gt;            &lt;int&gt;
+## 1 F     No               20903
+## 2 F     Yes               2411
+## 3 M     No               26952
+## 4 M     Yes               2799</code></pre>
+<p>For age, I was thinking about creating a data interval or range (for age 19-28, 29-38, 39-48, etc.) or split it up by life stage (teens, adults, elderly, or other groups). But I haven’t had enough exposure to perform those fancy categorization. I can probably do it later once I do more practice with dplyr.</p>
+<p>Insurance-wise, I think it’s interesting to know, if you’re an insurance provider, how many people died under your insurance name. So for now, I simply count how many people died within 30 days of admission who uses the Medicare (2766), the Medicaid (297), and others (2147). Again, there’s a potential bias here considering an insurance might be a monopoly so that everyone uses Medicare for instance.</p>
+<pre class="r"><code>by_ins &lt;-group_by(mimic_icu_cohort, by=insurance)%&gt;% 
+  count(thirty_days_mort) %&gt;% 
+  print()</code></pre>
+<pre><code>## # A tibble: 6 × 3
+## # Groups:   by [3]
+##   by       thirty_days_mort     n
+##   &lt;chr&gt;    &lt;chr&gt;            &lt;int&gt;
+## 1 Medicaid No                3532
+## 2 Medicaid Yes                297
+## 3 Medicare No               20010
+## 4 Medicare Yes               2766
+## 5 Other    No               24313
+## 6 Other    Yes               2147</code></pre>
+<p>The following dataframe will allow us to see whether patients who died within 30 days of admission have a generally higher or lower level of certain measurements, whether it be lab or vital measurements. A great addition to this dataframe would be a row with the ideal level of measurements to observe any trend that might be of interest from looking at the average level of patients who died within 30 days of admission.</p>
+<pre class="r"><code>by_mort &lt;- group_by(mimic_icu_cohort, by = thirty_days_mort)
+mort_df &lt;- summarise(by_mort, count = n()) %&gt;% 
+  mutate(summarise(by_mort, 
+                   avg_creatinine = mean(creatinine, na.rm = TRUE))) %&gt;% 
+  mutate(summarise(by_mort, 
+                   avg_potassium = mean(potassium, na.rm = TRUE))) %&gt;% 
+  mutate(summarise(by_mort, 
+                   avg_sodium = mean(sodium, na.rm = TRUE))) %&gt;%
+  mutate(summarise(by_mort, 
+                   avg_chloride = mean(chloride, na.rm = TRUE))) %&gt;%
+  mutate(summarise(by_mort, 
+                   avg_bicarbonate = mean(bicarbonate, na.rm = TRUE))) %&gt;%
+  mutate(summarise(by_mort, 
+                   avg_hematocrit = mean(hematocrit, na.rm = TRUE))) %&gt;%
+  mutate(summarise(by_mort, 
+                   avg_wbc_count = mean(wbc_count, na.rm = TRUE))) %&gt;%
+  mutate(summarise(by_mort, 
+                   avg_glucose = mean(glucose, na.rm = TRUE))) %&gt;%
+  mutate(summarise(by_mort, 
+                   avg_magnesium = mean(magnesium, na.rm = TRUE))) %&gt;%
+  mutate(summarise(by_mort, 
+                   avg_calcium = mean(calcium, na.rm = TRUE))) %&gt;% 
+  mutate(summarise(by_mort, 
+                   avg_heartRate = mean(heart_rate, na.rm = TRUE))) %&gt;%
+  mutate(summarise(by_mort, 
+                   avg_mean_non_invasive_bp = mean(mean_non_invasive_bp, 
+                                                   na.rm = TRUE))) %&gt;%
+  mutate(summarise(by_mort, 
+                   avg_syst_non_invasive_bp = mean(systolic_non_invasive_bp, 
+                                                   na.rm = TRUE))) %&gt;%
+  mutate(summarise(by_mort, 
+                   avg_temperature = mean(body_temp, na.rm = TRUE))) %&gt;%
+  mutate(summarise(by_mort, 
+                   avg_respiration_rate = mean(resp_rate, na.rm = TRUE))) %&gt;% 
+  rename(thirty_days_mort = &quot;by&quot;) %&gt;% 
+  print(width = Inf)</code></pre>
+<pre><code>## # A tibble: 2 × 17
+##   thirty_days_mort count avg_creatinine avg_potassium avg_sodium avg_chloride
+##   &lt;chr&gt;            &lt;int&gt;          &lt;dbl&gt;         &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;
+## 1 No               47855           1.26          4.16       139.         105.
+## 2 Yes               5210           1.78          4.33       138.         103.
+##   avg_bicarbonate avg_hematocrit avg_wbc_count avg_glucose avg_magnesium
+##             &lt;dbl&gt;          &lt;dbl&gt;         &lt;dbl&gt;       &lt;dbl&gt;         &lt;dbl&gt;
+## 1            23.2           32.8          11.7        139.          2.00
+## 2            20.9           32.5          15.2        164.          2.03
+##   avg_calcium avg_heartRate avg_mean_non_invasive_bp avg_syst_non_invasive_bp
+##         &lt;dbl&gt;         &lt;dbl&gt;                    &lt;dbl&gt;                    &lt;dbl&gt;
+## 1        8.38          86.8                     85.2                     124.
+## 2        8.22          93.2                    109.                      122.
+##   avg_temperature avg_respiration_rate
+##             &lt;dbl&gt;                &lt;dbl&gt;
+## 1            98.1                 18.4
+## 2            97.5                 21.1</code></pre>
 </div>
 
 
