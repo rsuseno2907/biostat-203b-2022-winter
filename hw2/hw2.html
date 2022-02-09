@@ -309,8 +309,9 @@ system(str_c(&quot;tree -s -L 2 &quot;, shQuote(mimic_path)), intern = TRUE)</co
 ##  [8] &quot;14489052,26516390,35056286,Trauma SICU (TSICU),Trauma SICU (TSICU),2118-10-26 10:33:56,2118-10-26 20:28:10,0.4126620370370371&quot; 
 ##  [9] &quot;15914763,28906020,36909804,Trauma SICU (TSICU),Trauma SICU (TSICU),2176-12-14 12:00:00,2176-12-17 11:47:01,2.9909837962962964&quot; 
 ## [10] &quot;16256226,20013290,39289362,Neuro Stepdown,Neuro Stepdown,2150-12-20 16:09:08,2150-12-21 14:58:40,0.9510648148148149&quot;</code></pre>
+<p><strong>Solution</strong></p>
 <ol style="list-style-type: decimal">
-<li>Import <code>icustatys.csv.gz</code> as a tibble <code>icustays_tble</code>. <strong>Solution</strong></li>
+<li>Import <code>icustatys.csv.gz</code> as a tibble <code>icustays_tble</code>.</li>
 </ol>
 <pre class="r"><code>icustays_tble &lt;- read_csv(&quot;/mnt/mimiciv/1.0/icu/icustays.csv.gz&quot;) %&gt;% 
   print(width=Inf)</code></pre>
@@ -437,37 +438,20 @@ by_id</code></pre>
 ##  [8] &quot;17301855,29732723,2140-06-06 14:23:00,2140-06-08 14:25:00,,ELECTIVE,,HOME,Other,ENGLISH,,WHITE,,,0&quot;                                                                                        
 ##  [9] &quot;17991012,24298836,2181-07-10 20:28:00,2181-07-12 15:49:00,,ELECTIVE,,HOME,Other,ENGLISH,,WHITE,,,0&quot;                                                                                        
 ## [10] &quot;16865435,23216961,2185-07-19 02:12:00,2185-07-21 11:50:00,,ELECTIVE,,HOME,Other,ENGLISH,,WHITE,,,0&quot;</code></pre>
+<p><strong>Solution</strong></p>
 <ol style="list-style-type: decimal">
 <li>Import <code>admissions.csv.gz</code> as a tibble <code>admissions_tble</code>.</li>
 </ol>
 <pre class="r"><code>admissions_tble &lt;- read_csv(&quot;/mnt/mimiciv/1.0/core/admissions.csv.gz&quot;)</code></pre>
-<pre><code>## Rows: 523740 Columns: 15</code></pre>
-<pre><code>## ── Column specification ────────────────────────────────────────────────────────
+<pre><code>## Rows: 523740 Columns: 15
+## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr  (7): admission_type, admission_location, discharge_location, insurance,...
 ## dbl  (3): subject_id, hadm_id, hospital_expire_flag
-## dttm (5): admittime, dischtime, deathtime, edregtime, edouttime</code></pre>
-<pre><code>## 
+## dttm (5): admittime, dischtime, deathtime, edregtime, edouttime
+## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>admissions_tble</code></pre>
-<pre><code>## # A tibble: 523,740 × 15
-##    subject_id  hadm_id admittime           dischtime          
-##         &lt;dbl&gt;    &lt;dbl&gt; &lt;dttm&gt;              &lt;dttm&gt;             
-##  1   14679932 21038362 2139-09-26 14:16:00 2139-09-28 11:30:00
-##  2   15585972 24941086 2123-10-07 23:56:00 2123-10-12 11:22:00
-##  3   11989120 21965160 2147-01-14 09:00:00 2147-01-17 14:25:00
-##  4   17817079 24709883 2165-12-27 17:33:00 2165-12-31 21:18:00
-##  5   15078341 23272159 2122-08-28 08:48:00 2122-08-30 12:32:00
-##  6   19124609 20517215 2169-03-14 12:44:00 2169-03-20 19:15:00
-##  7   17301855 29732723 2140-06-06 14:23:00 2140-06-08 14:25:00
-##  8   17991012 24298836 2181-07-10 20:28:00 2181-07-12 15:49:00
-##  9   16865435 23216961 2185-07-19 02:12:00 2185-07-21 11:50:00
-## 10   13693648 21640725 2111-01-30 23:43:00 2111-02-02 13:03:00
-## # … with 523,730 more rows, and 11 more variables: deathtime &lt;dttm&gt;,
-## #   admission_type &lt;chr&gt;, admission_location &lt;chr&gt;, discharge_location &lt;chr&gt;,
-## #   insurance &lt;chr&gt;, language &lt;chr&gt;, marital_status &lt;chr&gt;, ethnicity &lt;chr&gt;,
-## #   edregtime &lt;dttm&gt;, edouttime &lt;dttm&gt;, hospital_expire_flag &lt;dbl&gt;</code></pre>
 <ol start="2" style="list-style-type: decimal">
 <li>Let’s only keep the admissions that have a match in <code>icustays_tble</code> according to <code>subject_id</code> and <code>hadmi_id</code>.</li>
 </ol>
@@ -602,6 +586,7 @@ by_id</code></pre>
 ##  [8] &quot;10008101,M,0,2142,2008 - 2010,&quot;                                
 ##  [9] &quot;10009872,F,0,2168,2014 - 2016,&quot;                                
 ## [10] &quot;10011333,F,0,2132,2014 - 2016,&quot;</code></pre>
+<p><strong>Solution</strong></p>
 <ol style="list-style-type: decimal">
 <li>Import <code>patients.csv.gz</code> (<a href="https://mimic.mit.edu/docs/iv/modules/core/patients/" class="uri">https://mimic.mit.edu/docs/iv/modules/core/patients/</a>) as a tibble <code>patients_tble</code> and only keep the patients who have a match in <code>icustays_tble</code> (according to <code>subject_id</code>).</li>
 </ol>
@@ -689,6 +674,7 @@ df</code></pre>
 ##  [8] &quot;51067,24 hr Creatinine,Urine,Chemistry,&quot;          
 ##  [9] &quot;51068,24 hr Protein,Urine,Chemistry,&quot;             
 ## [10] &quot;50853,25-OH Vitamin D,Blood,Chemistry,&quot;</code></pre>
+<p><strong>Solution</strong></p>
 <ol style="list-style-type: decimal">
 <li>Find how many rows are in <code>labevents.csv.gz</code>.</li>
 </ol>
@@ -888,6 +874,7 @@ sum_lab &lt;- sum_lab %&gt;%
 ##  [8] &quot;220051,Arterial Blood Pressure diastolic,ABPd,chartevents,Routine Vital Signs,mmHg,Numeric,60,90&quot;
 ##  [9] &quot;220052,Arterial Blood Pressure mean,ABPm,chartevents,Routine Vital Signs,mmHg,Numeric,,&quot;         
 ## [10] &quot;220056,Arterial Blood Pressure Alarm - Low,ABP Alarm - Low,chartevents,Alarms,mmHg,Numeric,,&quot;</code></pre>
+<p><strong>Solution</strong></p>
 <ol style="list-style-type: decimal">
 <li>We are interested in the vitals for ICU patients: heart rate (220045), mean non-invasive blood pressure (220181), systolic non-invasive blood pressure (220179), body temperature in Fahrenheit (223761), and respiratory rate (220210). Retrieve a subset of <code>chartevents.csv.gz</code> only containing these items for the patients in <code>icustays_tble</code> as a tibble <code>chartevents_tble</code>.</li>
 </ol>
@@ -1191,6 +1178,7 @@ sum &lt;- sum %&gt;%
 ## 6 UNABLE TO OBTAIN                            755                 119 15.8 
 ## 7 UNKNOWN                                    5811                1135 19.5 
 ## 8 WHITE                                     35626                3082  8.65</code></pre>
+<pre class="r"><code>rm(a)</code></pre>
 <p>With regards to gender, we can simply find the number of males who died within 30 days of admissions, and the number of females who died within 30 days of admissions.</p>
 <pre class="r"><code>by_gender &lt;- group_by(mimic_icu_cohort, by = gender) %&gt;% 
   count(thirty_days_mort) %&gt;% 
@@ -1272,6 +1260,7 @@ mort_df &lt;- summarise(by_mort, count = n()) %&gt;%
 ##             &lt;dbl&gt;                &lt;dbl&gt;
 ## 1            98.1                 18.4
 ## 2            97.5                 21.1</code></pre>
+<p>Lastly, I just want to say that I still need a lot of practice on creating graphical representation of the data. I spent most of my time just understanding R in general considering I’ve never used it before. I am often unsure what would be a good plot to put and perplexed by what tool should I use specifically. That’s why for most of the exploratory and some of the summaries, I don’t have a lot of graphical representation. I’m planning on doing more once I submitted this version of my solution.</p>
 </div>
 
 

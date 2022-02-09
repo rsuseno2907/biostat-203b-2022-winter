@@ -68,8 +68,10 @@ system(
 )
 ```
 
-1. Import `icustatys.csv.gz` as a tibble `icustays_tble`. 
 **Solution**
+
+1. Import `icustatys.csv.gz` as a tibble `icustays_tble`. 
+
 ```{r}
 icustays_tble <- read_csv("/mnt/mimiciv/1.0/icu/icustays.csv.gz") %>% 
   print(width=Inf)
@@ -104,11 +106,11 @@ system(
   intern = TRUE
 )
 ```
+**Solution**
 
 1. Import `admissions.csv.gz` as a tibble `admissions_tble`.
 ```{r}
 admissions_tble <- read_csv("/mnt/mimiciv/1.0/core/admissions.csv.gz")
-admissions_tble
 ```
 
 2. Let's only keep the admissions that have a match in `icustays_tble` according to `subject_id` and `hadmi_id`.
@@ -198,6 +200,8 @@ system(
 )
 ```
 
+**Solution**
+
 1. Import `patients.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/core/patients/>) as a tibble `patients_tble` and only keep the patients who have a match in `icustays_tble` (according to `subject_id`).
 
 ```{r}
@@ -247,6 +251,8 @@ system(
   intern = TRUE
 )
 ```
+
+**Solution**
 
 1. Find how many rows are in `labevents.csv.gz`.
 ```{r}
@@ -373,6 +379,7 @@ system(
   intern = TRUE
 )
 ```
+**Solution**
 
 1. We are interested in the vitals for ICU patients: heart rate (220045), mean non-invasive blood pressure (220181), systolic non-invasive blood pressure (220179), body temperature in Fahrenheit (223761), and respiratory rate (220210). Retrieve a subset of `chartevents.csv.gz` only containing these items for the patients in `icustays_tble` as a tibble `chartevents_tble`.
 
@@ -505,6 +512,7 @@ sum <- sum %>%
          number_of_patient = "count", 
          patient_30days_mort = "n") %>% 
   print(width = Inf)
+rm(a)
 ```
 With regards to gender, we can simply find the number of males who died within 30 days of admissions, and the number of females who died within 30 days of admissions.
 ```{r}
@@ -562,3 +570,5 @@ mort_df <- summarise(by_mort, count = n()) %>%
   rename(thirty_days_mort = "by") %>% 
   print(width = Inf)
 ```
+
+Lastly, I just want to say that I still need a lot of practice on creating graphical representation of the data. I spent most of my time just understanding R in general considering I've never used it before. I am often unsure what would be a good plot to put and perplexed by what tool should I use specifically. That's why for most of the exploratory and some of the summaries, I don't have a lot of graphical representation. I'm planning on doing more once I submitted this version of my solution.
