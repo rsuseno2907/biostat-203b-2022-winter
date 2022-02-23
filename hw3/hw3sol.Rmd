@@ -122,26 +122,40 @@ labevents_tble <- labevents_tble %>%
   select(-charttime, -intime, -outtime) %>% #remove unnecessary variables between itemid and valuenum
   pivot_wider(names_from = itemid, 
               values_from = valuenum, 
-              names_prefix = 'lab') %>%  #pivot lab items
+              names_prefix = 'l') %>%  #pivot lab items
+  rename(creatinine = "l50912", potassium = "l50971", sodium = "l50983",
+       chloride = "l50902", bicarbonate = "l50882", hematocrit = "l51221",
+       wbc_count = "l51301", glucose = "l50931",
+       magnesium = "l50960", calcium = "l50893") %>% 
   print(width = Inf)
 ```
 
 7. Connect to `chartevents` table and retrieve a subset that only contain subjects who appear in `icustays_tble` and the chart events listed in HW2.
 ```{r}
 # # TODO
-chartevents_tble <- tbl(con, "chartevents") %>% 
-  left_join(select(icustays_tble, subject_id, intime), by = "subject_id") %>%
+chartevents_tble <- tbl(con, "chartevents") %>%
+  select(subject_id, itemid, charttime, valuenum) %>% 
+  semi_join(icustays_tble, by = "subject_id") %>%
   filter(itemid %in% c(220045, 220181, 220179, 223761, 220210)) %>% 
+  left_join(select(icustays_tble, subject_id, intime, outtime), 
+            by = "subject_id") %>% 
   print(width=Inf)
 ```
 Only keep the first chart events during ICU stay and pivot chart events to become variables/columns.
 ```{r}
 # # TODO
 chartevents_tble <- chartevents_tble %>%
+  filter(charttime > intime & charttime < outtime) %>% 
   group_by(subject_id, itemid) %>% 
-  slice_min(n=1, order_by = intime) %>% #take first lab measurement 
+  slice_min(n=1, order_by = charttime) %>% #take first lab measurement 
   ungroup() %>% 
-  pivot_wider(names_from = itemid, values_from = valuenum, names_prefix = 'chart') %>%  #pivot lab items
+  select(-charttime, -intime, -outtime) %>%
+  pivot_wider(names_from = itemid, 
+              values_from = valuenum, 
+              names_prefix = 'c') %>%  #pivot lab items
+  rename(heart_rate = "c220045", mean_non_invasive_bp = "c220181",
+       systolic_non_invasive_bp = "c220179", body_temp = "c223761",
+       resp_rate = "c220210") %>%
   print(width = Inf)
 ```
 
