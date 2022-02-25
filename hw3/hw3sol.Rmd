@@ -180,8 +180,16 @@ icu_cohort <- icustays_tble %>%
   mutate(shinda = date_diff(dod, admittime, DAY)) %>% 
   mutate(thirty_days_mort = ifelse(shinda < 30 & shinda != 0, "Yes", "No")) %>%
   select(-shinda) %>% 
-  #print(width = Inf)
-  write_rds("mimiciv_shiny/icu_cohort.rds")
+  print(width = Inf)
+  #write_rds("mimiciv_shiny/icu_cohort.rds")
+```
+
+```{r}
+#icu_cohort %>% 
+#  select(admittime, dod, thirty_days_mort) %>% 
+#  filter(thirty_days_mort == TRUE) %>% 
+#  summarise(n=n()) %>% 
+#  print(width = Inf)
 ```
 
 Close database connection and clear workspace.
