@@ -50,20 +50,40 @@ server <- function(input, output) {
     
     
     ggplot(icu_cohort, aes_string(x = data)) +
-      geom_histogram(stat='count')
+      geom_histogram(stat='count') + #same as geom_bar() 
+      ggtitle('Number of patients within different demographic cateogory') +
+      xlab('Demographic Sub-category') +
+      ylab('Patient count')
   })
   
   #Output plot 2: measurements
   output$measurementPlot <- renderPlot({
     msmt <- switch(input$measurements,
                    "Creatinine" = "creatinine",
-                   "Glucose" = "glucose")
+                   "Glucose" = "glucose",
+                   "Potassium" = "potassium",
+                   "Sodium" = "sodium",
+                   "Chloride" = "chloride",
+                   "Bicarbonate" = "bicarbonate",
+                   "Hematocrit" = "hematocrit",
+                   "White blood cells count" = "wbc_count",
+                   "Magnesium" = "magnesium",
+                   "Calcium" = "calcium",
+                   "Heart rate" = "heart_rate",
+                   "Mean non-invasive blood pressure" = "mean_non_invasive_bp",
+                   "Systolic non-invasive blood pressure" =
+                     "systolic_non_invasive_bp",
+                   "Respiration rate" = "resp_rate",
+                   "Body temperature" = "body_temp")
     
     ggplot(icu_cohort, mapping = aes_string(x = "thirty_days_mort", y = msmt)) +
-      geom_boxplot(outlier.shape = NA) + #remove outliers
-      coord_cartesian(
-        ylim = c(median(icu_cohort$msmt) - median(icu_cohort$msmt)/2, 
-                 median(icu_cohort$msmt) + median(icu_cohort$msmt)/2))
+      geom_boxplot(outlier.shape = NA) +
+      xlab('Did the patient die within 30 days of hospitalization?') +
+      scale_y_continuous()
+      #scale_y_discrete(label = waiver())
+      #coord_cartesian(
+      #  ylim = c(median(icu_cohort$msmt) - median(icu_cohort$msmt)/2, 
+      #           median(icu_cohort$msmt) + median(icu_cohort$msmt)/2))
   })
   
   
