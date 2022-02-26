@@ -13,10 +13,12 @@ ui <- fluidPage(
     sidebarPanel(
       #TODO decide what to put as inputs here
       helpText("This panel allows you to pick information to display 
-               on the right-hand side of this screen"),
+               on the right-hand side of this screen. Please note that each 
+               input panel correspond to one output panel"),
       selectInput("demographic",
                   label = "What kind of demographics are you interested in today?",
-                  choices = c("Ethnicity", "Age", "Gender", "Insurance"), 
+                  choices = c("Ethnicity", "Age", "Gender", 
+                              "Insurance", "Language", "Marital Status"), 
                   selected = "Ethnicity"), #the default that shows up
       radioButtons("measurements",
                   label = "Which measurement would you like to compare?",
@@ -46,7 +48,9 @@ server <- function(input, output) {
                    "Ethnicity" = "ethnicity",
                    "Age" = "age_hadm",
                    "Gender" = "gender",
-                   "Insurance" = "insurance")
+                   "Insurance" = "insurance",
+                   "Language" = "language",
+                   "Marital Status" = "marital_status")
     
     
     ggplot(icu_cohort, aes_string(x = data)) +
@@ -79,6 +83,8 @@ server <- function(input, output) {
     ggplot(icu_cohort, mapping = aes_string(x = "thirty_days_mort", y = msmt)) +
       geom_boxplot(outlier.shape = NA) +
       xlab('Did the patient die within 30 days of hospitalization?') +
+      ggtitle('Measurement statistics between patients who did and did not die 
+              within 30 days of hospitalization') +
       scale_y_continuous()
       #scale_y_discrete(label = waiver())
       #coord_cartesian(
