@@ -33,15 +33,72 @@ Through the Shiny app developed in HW3, we observe abundant missing values in th
 
 1. Explain the jargon MCAR, MAR, and MNAR.
 
+MCAR (Missing Completely at Random) -> probability of the data being missing is same for all cases. There is a known reason that some of the data is missing. Most of the time, such missing data is caused by improper measurement or just good-old bad luck.
+
+MAR (Missing at Random) -> probability of data being missing is the same within the same category of data. If a certain measurement technique / tool is known to have given you more missing data, then those missing data are considered MAR. It is the more realistic category of missing data compared to MCAR. Essentially, there's somewhat an underlying reason why there is a missing data - that happened in during the data measurement.
+
+MNAR (Missing not at Random) -> when we have no idea why the data is missing. This is a type of missing data that doesn't fall under MCAR or MAR. 
+
 2. Explain in a couple of sentences how the Multiple Imputation by Chained Equations (MICE) work.
+
+The MICE algorithm is capable of filling in missing data on multiple variables. It starts by filling in the missing data with random values. Then, a random forest is performed to predict the missing values of one variable using the rest of the other variables. Keep in mind that the rest of the other variables, at this point, is still randomly filled (within a reasonable range depending on the variable's distribution).
+
+Now that we've got the imputed values for the first variable, it is time to impute the second variable again, using random forest on data from the first variable (that has been imputed) and the rest of the variables. We would then keep repeating this step until it converges. Typically, MICE will take no more than 5 iterations.
 
 3. Perform a data quality check of the ICU stays data. Discard variables with substantial missingness, say >5000 `NA`s. Replace apparent data entry errors by `NA`s.
 
+```{r}
+icustays_tble <- read_csv("/mnt/mimiciv/1.0/icu/icustays.csv.gz") %>% 
+  print(width=Inf)
+```
+```{r}
+ggplot(icustays_tble, mapping = aes(y = los)) +
+  geom_boxplot() + 
+  scale_y_discrete()
+```
+```{r}
+ggplot(icustays_tble, aes(los))+
+  geom_histogram(bins = 30L)
+```
+
 4. Impute missing values by `miceRanger` (request $m=3$ data sets). This step is computational intensive. Make sure to save the imputation results as a file. Hint: Setting `max.depth=10` in the `miceRanger` function may cut some computing time.
 
+```{r}
+seqTime <- system.time(
+  imputedObj <- miceRanger(
+    icustays_tble,
+    m = 3,
+    returnModels = TRUE,
+    verbose = FALSE,
+    max.depth = 10
+  )
+)
+```
+
 5. Make imputation diagnostic plots and explain what they mean.
+```{r}
+plotDistributions(imputedObj, vars = 'allNumeric')
+```
+
+```{r}
+plotCorrelations(imputedObj, vars = 'allNumeric')
+```
+
+```{r}
+plotVarConvergence(imputedObj, vars = 'allNumeric')
+```
+
+```{r}
+plotModelError(imputedObj, vars = 'allNumeric')
+```
 
 6. Choose one of the imputed data sets to be used in Q2. This is **not** a good idea to use just one imputed data set or to average multiple imputed data sets. Explain in a couple of sentences what the correct Multiple Imputation strategy is.
+
+**Answer**
+To get the imputed data, we need to use `completeData`
+```{r}
+imp_icustays_tble <- completeData(imputedObj)
+```
 
 ## Q2. Predicting 30-day mortality
 
