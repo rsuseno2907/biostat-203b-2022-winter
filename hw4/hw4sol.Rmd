@@ -48,46 +48,75 @@ Now that we've got the imputed values for the first variable, it is time to impu
 3. Perform a data quality check of the ICU stays data. Discard variables with substantial missingness, say >5000 `NA`s. Replace apparent data entry errors by `NA`s.
 
 ```{r}
-icustays_tble <- read_csv("/mnt/mimiciv/1.0/icu/icustays.csv.gz") %>% 
-  print(width=Inf)
+mimic_icu_cohort <- readRDS("icu_cohort.rds") %>% 
+  print(width = Inf)
 ```
+Create a summary to observe which columns have >5000 NAs. Turns out these variables have >5000 NAs: `dod deathtime edregtime edouttime`
 ```{r}
-ggplot(icustays_tble, mapping = aes(y = los)) +
-  geom_boxplot() + 
-  scale_y_discrete()
-```
-```{r}
-ggplot(icustays_tble, aes(los))+
-  geom_histogram(bins = 30L)
+#sum(is.na(mimic_icu_cohort$subject_id))>5000
+#select_if(mimic_icu_cohort, sum(is.na(mimic_icu_cohort))>5000)
+#tmp <- select_if(mimic_icu_cohort, sum(is.na(mimic_icu_cohort))>rep(5000,43))
+summary(mimic_icu_cohort)
 ```
 
+Exclude columns with >5000 NAs
+```{r}
+mimic_icu_cohort <- mimic_icu_cohort %>% 
+  select(-dod, -deathtime, -edregtime, -edouttime) %>% 
+  print(width = Inf)
+```
+Replace outliers with NAs
+```{r}
+replaceOutlier <- function(x, cutoff = 3) {
+  x[abs(x) > cutoff*sd(x, na.rm = T)] <- NA_real_
+  x
+}
+
+
+```
+
+Prepare data for imputation to only include numerical values (specifically, I only include lab measurements, chart measurements, and age of patients).
+```{r}
+tbi <- select(mimic_icu_cohort, c( 'gender','age_hadm','marital_status',
+                                   'ethnicity','thirty_days_mort',23:37))
+summary(tbi)
+```
 4. Impute missing values by `miceRanger` (request $m=3$ data sets). This step is computational intensive. Make sure to save the imputation results as a file. Hint: Setting `max.depth=10` in the `miceRanger` function may cut some computing time.
 
 ```{r}
 seqTime <- system.time(
   imputedObj <- miceRanger(
-    icustays_tble,
+    tbi,
     m = 3,
-    returnModels = TRUE,
+    returnModels = FALSE, #False is better here due to file size
     verbose = FALSE,
     max.depth = 10
   )
 )
+saveRDS(imputedObj, "imputation_result") 
+```
+
+```{r}
+summary(imputedObj)
 ```
 
 5. Make imputation diagnostic plots and explain what they mean.
+
+**Answer**
+This plot demonstrates how the distribution of the imputed data differ from the original distribution. The original data is plotted as red and the imputed data is plotted in black.
 ```{r}
 plotDistributions(imputedObj, vars = 'allNumeric')
 ```
 
+This next plot informs us the range of imputed values in different imputation iterations.
 ```{r}
 plotCorrelations(imputedObj, vars = 'allNumeric')
 ```
-
+The following plat is called the Center and Dispersion Convergence plot, which typically determine whether another iteration needs to be run. 
 ```{r}
 plotVarConvergence(imputedObj, vars = 'allNumeric')
 ```
-
+This last diagnostic plot tells us the accuracy of classification and r-squared regression.
 ```{r}
 plotModelError(imputedObj, vars = 'allNumeric')
 ```
@@ -98,6 +127,7 @@ plotModelError(imputedObj, vars = 'allNumeric')
 To get the imputed data, we need to use `completeData`
 ```{r}
 imp_icustays_tble <- completeData(imputedObj)
+print(imp_icustays_tble, width=Inf)
 ```
 
 ## Q2. Predicting 30-day mortality
@@ -105,6 +135,14 @@ imp_icustays_tble <- completeData(imputedObj)
 Develop at least two analytic approaches for predicting the 30-day mortality of patients admitted to ICU using demographic information (gender, age, marital status, ethnicity), first lab measurements during ICU stay, and first vital measurements during ICU stay. For example, you can use (1) logistic regression (`glm()` function in base R or keras), (2) logistic regression with lasso penalty (glmnet or keras package), (3) random forest (randomForest package), or (4) neural network (keras package).
 
 1. Partition data into 80% training set and 20% test set. Stratify partitioning according the 30-day mortality status.
+
+```{r}
+library(caret)
+```
+
+```{r}
+
+```
 
 2. Train the models using the training set.
 
