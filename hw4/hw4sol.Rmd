@@ -48,9 +48,10 @@ Now that we've got the imputed values for the first variable, it is time to impu
 3. Perform a data quality check of the ICU stays data. Discard variables with substantial missingness, say >5000 `NA`s. Replace apparent data entry errors by `NA`s.
 
 ```{r}
-mimic_icu_cohort <- readRDS("icu_cohort.rds") %>% 
+mimic_icu_cohort <- readRDS("icu_cohort_log.rds") %>% 
   print(width = Inf)
 ```
+
 Create a summary to observe which columns have >5000 NAs. Turns out these variables have >5000 NAs: `dod deathtime edregtime edouttime`
 ```{r}
 #sum(is.na(mimic_icu_cohort$subject_id))>5000
@@ -65,21 +66,38 @@ mimic_icu_cohort <- mimic_icu_cohort %>%
   select(-dod, -deathtime, -edregtime, -edouttime) %>% 
   print(width = Inf)
 ```
+
 Replace outliers with NAs
 ```{r}
-replaceOutlier <- function(x, cutoff = 3) {
-  x[abs(x) > cutoff*sd(x, na.rm = T)] <- NA_real_
+
+outlierToNa <- function(x) {
+  Q1 <- quantile(x, .25, na.rm = TRUE)
+  Q3 <- quantile(x, .75, na.rm = TRUE)
+  IQR <- Q3 - Q1
+  x[x < (Q1 - 1.5*IQR) | x > (Q3 + 1.5*IQR)] <- NA
   x
 }
 
+measurements <- select(mimic_icu_cohort, c(23:37))
 
+modified_measurements <- measurements %>% 
+  mutate_all(outlierToNa)
+
+summary(measurements)
 ```
 
-Prepare data for imputation to only include numerical values (specifically, I only include lab measurements, chart measurements, and age of patients).
+Check to see if the outliers have been removed
+```{r}
+summary(modified_measurements)
+```
+
+Prepare data for imputation to only include necessary variables (specifically, I only include lab measurements, chart measurements, age of patients, gender, marital status, ethnicity, and 30daysmort).
 ```{r}
 tbi <- select(mimic_icu_cohort, c( 'gender','age_hadm','marital_status',
-                                   'ethnicity','thirty_days_mort',23:37))
-summary(tbi)
+                                   'ethnicity','thirty_days_mort'))
+tbi <- bind_cols(tbi, modified_measurements)
+#summary(tbi)
+print(tbi, width = Inf)
 ```
 4. Impute missing values by `miceRanger` (request $m=3$ data sets). This step is computational intensive. Make sure to save the imputation results as a file. Hint: Setting `max.depth=10` in the `miceRanger` function may cut some computing time.
 
@@ -93,12 +111,9 @@ seqTime <- system.time(
     max.depth = 10
   )
 )
-saveRDS(imputedObj, "imputation_result") 
+saveRDS(imputedObj, "very_newest_imputation_result") 
 ```
 
-```{r}
-summary(imputedObj)
-```
 
 5. Make imputation diagnostic plots and explain what they mean.
 
@@ -127,7 +142,7 @@ plotModelError(imputedObj, vars = 'allNumeric')
 To get the imputed data, we need to use `completeData`
 ```{r}
 imp_icustays_tble <- completeData(imputedObj)
-print(imp_icustays_tble, width=Inf)
+print(imp_icustays_tble$Dataset_1, width=Inf)
 ```
 
 ## Q2. Predicting 30-day mortality
@@ -141,9 +156,48 @@ library(caret)
 ```
 
 ```{r}
+icu_dataset = imp_icustays_tble$Dataset_1
+#Convert boolean to int 0 1
+icu_dataset$thirty_days_mort_int <- as.integer(icu_dataset$thirty_days_mort)
+icu_dataset <- select(icu_dataset, -thirty_days_mort)
 
+trainIndex <- createDataPartition(icu_dataset$thirty_days_mort_int, p = .8,
+                                  list = FALSE,
+                                  times = 1)
+icu_train <- icu_dataset[trainIndex,]
+icu_test <- icu_dataset[-trainIndex,]
 ```
 
 2. Train the models using the training set.
 
+First, train it with the base R logistic regression, `glm()`
+```{r}
+logistic <- glm(thirty_days_mort_int ~ ., icu_train, family = binomial)
+summary(logistic)
+```
+Now, train it with penalized regression using `glmnet()`
+```{r}
+library(glmnet)
+x <- model.matrix(thirty_days_mort_int ~ ., icu_train)
+y <- icu_train$thirty_days_mort_int
+cv <- cv.glmnet(x, y, family = 'binomial', alpha = 1)
+```
+
+```{r}
+
+```
 3. Compare model prediction performance on the test set.
+
+For logistic regression `glm()`
+```{r}
+
+```
+
+For lasso-penalized logistic regression `glmnet()`
+```{r}
+test_x <- model.matrix(icu_test$thirty_days_mort_int ~ ., icu_test)
+pred <- predict(cv, newx = test_x, s = 1, type = "response")
+#With a threshold of 0.5, convert the prediction probability to 0 and 1
+prediction <- ifelse(pred < 0.5, 0, 1)
+mean(prediction == icu_test$thirty_days_mort_int)
+```
