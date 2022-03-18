@@ -101,7 +101,7 @@ print(tbi, width = Inf)
 ```
 4. Impute missing values by `miceRanger` (request $m=3$ data sets). This step is computational intensive. Make sure to save the imputation results as a file. Hint: Setting `max.depth=10` in the `miceRanger` function may cut some computing time.
 
-```{r}
+```{r, eval = F}
 seqTime <- system.time(
   imputedObj <- miceRanger(
     tbi,
@@ -112,6 +112,10 @@ seqTime <- system.time(
   )
 )
 saveRDS(imputedObj, "very_newest_imputation_result") 
+```
+
+```{r}
+imputedObj <- readRDS("very_newest_imputation_result")
 ```
 
 
@@ -125,11 +129,11 @@ plotDistributions(imputedObj, vars = 'allNumeric')
 
 This next plot informs us the range of imputed values in different imputation iterations.
 ```{r}
-plotCorrelations(imputedObj, vars = 'allNumeric')
+#plotCorrelations(imputedObj, vars = 'allNumeric')
 ```
 The following plat is called the Center and Dispersion Convergence plot, which typically determine whether another iteration needs to be run. 
 ```{r}
-plotVarConvergence(imputedObj, vars = 'allNumeric')
+#plotVarConvergence(imputedObj, vars = 'allNumeric')
 ```
 This last diagnostic plot tells us the accuracy of classification and r-squared regression.
 ```{r}
@@ -142,7 +146,6 @@ plotModelError(imputedObj, vars = 'allNumeric')
 To get the imputed data, we need to use `completeData`
 ```{r}
 imp_icustays_tble <- completeData(imputedObj)
-print(imp_icustays_tble$Dataset_1, width=Inf)
 ```
 
 ## Q2. Predicting 30-day mortality
