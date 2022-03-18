@@ -54,9 +54,6 @@ mimic_icu_cohort <- readRDS("icu_cohort_log.rds") %>%
 
 Create a summary to observe which columns have >5000 NAs. Turns out these variables have >5000 NAs: `dod deathtime edregtime edouttime`
 ```{r}
-#sum(is.na(mimic_icu_cohort$subject_id))>5000
-#select_if(mimic_icu_cohort, sum(is.na(mimic_icu_cohort))>5000)
-#tmp <- select_if(mimic_icu_cohort, sum(is.na(mimic_icu_cohort))>rep(5000,43))
 summary(mimic_icu_cohort)
 ```
 
@@ -67,7 +64,7 @@ mimic_icu_cohort <- mimic_icu_cohort %>%
   print(width = Inf)
 ```
 
-Replace outliers with NAs
+Replace outliers with NAs, then use `summary()` to check whether outlier has been removed.
 ```{r}
 
 outlierToNa <- function(x) {
@@ -83,11 +80,6 @@ measurements <- select(mimic_icu_cohort, c(23:37))
 modified_measurements <- measurements %>% 
   mutate_all(outlierToNa)
 
-summary(measurements)
-```
-
-Check to see if the outliers have been removed
-```{r}
 summary(modified_measurements)
 ```
 
@@ -101,6 +93,8 @@ print(tbi, width = Inf)
 ```
 4. Impute missing values by `miceRanger` (request $m=3$ data sets). This step is computational intensive. Make sure to save the imputation results as a file. Hint: Setting `max.depth=10` in the `miceRanger` function may cut some computing time.
 
+**Answer**
+I'm setting the cell below to `eval=F` because running `miceRanger()` will take forever to knit.
 ```{r, eval = F}
 seqTime <- system.time(
   imputedObj <- miceRanger(
@@ -122,27 +116,20 @@ imputedObj <- readRDS("very_newest_imputation_result")
 5. Make imputation diagnostic plots and explain what they mean.
 
 **Answer**
-This plot demonstrates how the distribution of the imputed data differ from the original distribution. The original data is plotted as red and the imputed data is plotted in black.
+This plot demonstrates how the distribution of the imputed data differ from the original distribution. The original data is plotted as red and the imputed data is plotted in black. As we can observe, they all fall within a normal distribution and are generally follow the same trend between the original and the imputed data.
 ```{r}
 plotDistributions(imputedObj, vars = 'allNumeric')
 ```
 
-This next plot informs us the range of imputed values in different imputation iterations.
-```{r}
-#plotCorrelations(imputedObj, vars = 'allNumeric')
-```
-The following plat is called the Center and Dispersion Convergence plot, which typically determine whether another iteration needs to be run. 
-```{r}
-#plotVarConvergence(imputedObj, vars = 'allNumeric')
-```
-This last diagnostic plot tells us the accuracy of classification and r-squared regression.
+
+This diagnostic plot tells us the accuracy of classification and r-squared regression.
 ```{r}
 plotModelError(imputedObj, vars = 'allNumeric')
 ```
 
 6. Choose one of the imputed data sets to be used in Q2. This is **not** a good idea to use just one imputed data set or to average multiple imputed data sets. Explain in a couple of sentences what the correct Multiple Imputation strategy is.
 
-**Answer**
+
 To get the imputed data, we need to use `completeData`
 ```{r}
 imp_icustays_tble <- completeData(imputedObj)
@@ -155,7 +142,7 @@ Develop at least two analytic approaches for predicting the 30-day mortality of 
 1. Partition data into 80% training set and 20% test set. Stratify partitioning according the 30-day mortality status.
 
 ```{r}
-library(caret)
+suppressPackageStartupMessages(library(caret))
 ```
 
 ```{r}
@@ -189,14 +176,14 @@ penalized_logistic_model <- cv.glmnet(x, y, family = 'binomial', alpha = 1)
 
 3. Compare model prediction performance on the test set.
 
-For logistic regression `glm()`
+The accuracy for logistic regression: `glm()`
 ```{r}
 pred_log <- predict(logistic_model, icu_test, type = "response")
 prediction_log <- ifelse(pred_log < 0.5, 0, 1)
 mean(prediction_log == icu_test$thirty_days_mort_int)
 ```
 
-For lasso-penalized logistic regression `glmnet()`
+The accuracy for logistic regression with LASSO penalty: `glmnet()`
 ```{r}
 test_x <- model.matrix(icu_test$thirty_days_mort_int ~ ., icu_test)
 pred <- predict(penalized_logistic_model, newx = test_x, s = 1, type = "response")
@@ -204,3 +191,5 @@ pred <- predict(penalized_logistic_model, newx = test_x, s = 1, type = "response
 prediction <- ifelse(pred < 0.5, 0, 1)
 mean(prediction == icu_test$thirty_days_mort_int)
 ```
+
+When comparing the two performance, we can see that the accuracy for logistic regression with LASSO penalty is a little bit worse than logistic regression in this case. They are still very fairly comparable as they are usually both around 90% accurate. The numbers are different everytime simply because we are splitting the training/testing set at 'random', so the performance will be different every run.
