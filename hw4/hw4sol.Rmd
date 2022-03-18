@@ -172,31 +172,31 @@ icu_test <- icu_dataset[-trainIndex,]
 
 First, train it with the base R logistic regression, `glm()`
 ```{r}
-logistic <- glm(thirty_days_mort_int ~ ., icu_train, family = binomial)
-summary(logistic)
+logistic_model <- glm(thirty_days_mort_int ~ ., icu_train, family = binomial)
+#summary(logistic)
 ```
+
 Now, train it with penalized regression using `glmnet()`
 ```{r}
 library(glmnet)
 x <- model.matrix(thirty_days_mort_int ~ ., icu_train)
 y <- icu_train$thirty_days_mort_int
-cv <- cv.glmnet(x, y, family = 'binomial', alpha = 1)
+penalized_logistic_model <- cv.glmnet(x, y, family = 'binomial', alpha = 1)
 ```
 
-```{r}
-
-```
 3. Compare model prediction performance on the test set.
 
 For logistic regression `glm()`
 ```{r}
-
+pred_log <- predict(logistic_model, icu_test, type = "response")
+prediction_log <- ifelse(pred_log < 0.5, 0, 1)
+mean(prediction_log == icu_test$thirty_days_mort_int)
 ```
 
 For lasso-penalized logistic regression `glmnet()`
 ```{r}
 test_x <- model.matrix(icu_test$thirty_days_mort_int ~ ., icu_test)
-pred <- predict(cv, newx = test_x, s = 1, type = "response")
+pred <- predict(penalized_logistic_model, newx = test_x, s = 1, type = "response")
 #With a threshold of 0.5, convert the prediction probability to 0 and 1
 prediction <- ifelse(pred < 0.5, 0, 1)
 mean(prediction == icu_test$thirty_days_mort_int)
