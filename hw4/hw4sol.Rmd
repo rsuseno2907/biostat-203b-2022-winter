@@ -1,0 +1,195 @@
+---
+title: "Biostat 203B Homework 4"
+subtitle: Due Mar 18 @ 11:59PM
+output:
+  # ioslides_presentation: default
+  html_document:
+    toc: true
+    toc_depth: 4
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+```
+
+Display machine information:
+```{r}
+sessionInfo()
+```
+Load database libraries and the tidyverse frontend:
+```{r}
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(lubridate))
+suppressPackageStartupMessages(library(miceRanger))
+```
+
+## Q1. Missing data
+
+Through the Shiny app developed in HW3, we observe abundant missing values in the MIMIC-IV ICU cohort we created. In this question, we use multiple imputation to obtain a data set without missing values.
+
+0. Read following tutorials on the R package miceRanger for imputation: <https://github.com/farrellday/miceRanger>, <https://cran.r-project.org/web/packages/miceRanger/vignettes/miceAlgorithm.html>.
+
+    A more thorough book treatment of the practical imputation strategies is the book [*_Flexible Imputation of Missing Data_*](https://stefvanbuuren.name/fimd/) by Stef van Buuren. 
+
+1. Explain the jargon MCAR, MAR, and MNAR.
+
+MCAR (Missing Completely at Random) -> probability of the data being missing is same for all cases. There is a known reason that some of the data is missing. Most of the time, such missing data is caused by improper measurement or just good-old bad luck.
+
+MAR (Missing at Random) -> probability of data being missing is the same within the same category of data. If a certain measurement technique / tool is known to have given you more missing data, then those missing data are considered MAR. It is the more realistic category of missing data compared to MCAR. Essentially, there's somewhat an underlying reason why there is a missing data - that happened in during the data measurement.
+
+MNAR (Missing not at Random) -> when we have no idea why the data is missing. This is a type of missing data that doesn't fall under MCAR or MAR. 
+
+2. Explain in a couple of sentences how the Multiple Imputation by Chained Equations (MICE) work.
+
+The MICE algorithm is capable of filling in missing data on multiple variables. It starts by filling in the missing data with random values. Then, a random forest is performed to predict the missing values of one variable using the rest of the other variables. Keep in mind that the rest of the other variables, at this point, is still randomly filled (within a reasonable range depending on the variable's distribution).
+
+Now that we've got the imputed values for the first variable, it is time to impute the second variable again, using random forest on data from the first variable (that has been imputed) and the rest of the variables. We would then keep repeating this step until it converges. Typically, MICE will take no more than 5 iterations.
+
+3. Perform a data quality check of the ICU stays data. Discard variables with substantial missingness, say >5000 `NA`s. Replace apparent data entry errors by `NA`s.
+
+```{r}
+mimic_icu_cohort <- readRDS("icu_cohort_log.rds") %>% 
+  print(width = Inf)
+```
+
+Create a summary to observe which columns have >5000 NAs. Turns out these variables have >5000 NAs: `dod deathtime edregtime edouttime`
+```{r}
+summary(mimic_icu_cohort)
+```
+
+Exclude columns with >5000 NAs
+```{r}
+mimic_icu_cohort <- mimic_icu_cohort %>% 
+  select(-dod, -deathtime, -edregtime, -edouttime) %>% 
+  print(width = Inf)
+```
+
+Replace outliers with NAs, then use `summary()` to check whether outlier has been removed.
+```{r}
+
+outlierToNa <- function(x) {
+  Q1 <- quantile(x, .25, na.rm = TRUE)
+  Q3 <- quantile(x, .75, na.rm = TRUE)
+  IQR <- Q3 - Q1
+  x[x < (Q1 - 1.5*IQR) | x > (Q3 + 1.5*IQR)] <- NA
+  x
+}
+
+measurements <- select(mimic_icu_cohort, c(23:37))
+
+modified_measurements <- measurements %>% 
+  mutate_all(outlierToNa)
+
+summary(modified_measurements)
+```
+
+Prepare data for imputation to only include necessary variables (specifically, I only include lab measurements, chart measurements, age of patients, gender, marital status, ethnicity, and 30daysmort).
+```{r}
+tbi <- select(mimic_icu_cohort, c( 'gender','age_hadm','marital_status',
+                                   'ethnicity','thirty_days_mort'))
+tbi <- bind_cols(tbi, modified_measurements)
+#summary(tbi)
+print(tbi, width = Inf)
+```
+4. Impute missing values by `miceRanger` (request $m=3$ data sets). This step is computational intensive. Make sure to save the imputation results as a file. Hint: Setting `max.depth=10` in the `miceRanger` function may cut some computing time.
+
+**Answer**
+I'm setting the cell below to `eval=F` because running `miceRanger()` will take forever to knit.
+```{r, eval = F}
+seqTime <- system.time(
+  imputedObj <- miceRanger(
+    tbi,
+    m = 3,
+    returnModels = FALSE, #False is better here due to file size
+    verbose = FALSE,
+    max.depth = 10
+  )
+)
+saveRDS(imputedObj, "very_newest_imputation_result") 
+```
+
+```{r}
+imputedObj <- readRDS("very_newest_imputation_result")
+```
+
+
+5. Make imputation diagnostic plots and explain what they mean.
+
+**Answer**
+This plot demonstrates how the distribution of the imputed data differ from the original distribution. The original data is plotted as red and the imputed data is plotted in black. As we can observe, they all fall within a normal distribution and are generally follow the same trend between the original and the imputed data.
+```{r}
+plotDistributions(imputedObj, vars = 'allNumeric')
+```
+
+
+This diagnostic plot tells us the accuracy of classification and r-squared regression.
+```{r}
+plotModelError(imputedObj, vars = 'allNumeric')
+```
+
+6. Choose one of the imputed data sets to be used in Q2. This is **not** a good idea to use just one imputed data set or to average multiple imputed data sets. Explain in a couple of sentences what the correct Multiple Imputation strategy is.
+
+
+To get the imputed data, we need to use `completeData`
+```{r}
+imp_icustays_tble <- completeData(imputedObj)
+```
+
+## Q2. Predicting 30-day mortality
+
+Develop at least two analytic approaches for predicting the 30-day mortality of patients admitted to ICU using demographic information (gender, age, marital status, ethnicity), first lab measurements during ICU stay, and first vital measurements during ICU stay. For example, you can use (1) logistic regression (`glm()` function in base R or keras), (2) logistic regression with lasso penalty (glmnet or keras package), (3) random forest (randomForest package), or (4) neural network (keras package).
+
+1. Partition data into 80% training set and 20% test set. Stratify partitioning according the 30-day mortality status.
+
+```{r}
+suppressPackageStartupMessages(library(caret))
+```
+
+```{r}
+icu_dataset = imp_icustays_tble$Dataset_1
+#Convert boolean to int 0 1
+icu_dataset$thirty_days_mort_int <- as.integer(icu_dataset$thirty_days_mort)
+icu_dataset <- select(icu_dataset, -thirty_days_mort)
+
+trainIndex <- createDataPartition(icu_dataset$thirty_days_mort_int, p = .8,
+                                  list = FALSE,
+                                  times = 1)
+icu_train <- icu_dataset[trainIndex,]
+icu_test <- icu_dataset[-trainIndex,]
+```
+
+2. Train the models using the training set.
+
+First, train it with the base R logistic regression, `glm()`
+```{r}
+logistic_model <- glm(thirty_days_mort_int ~ ., icu_train, family = binomial)
+#summary(logistic)
+```
+
+Now, train it with penalized regression using `glmnet()`
+```{r}
+library(glmnet)
+x <- model.matrix(thirty_days_mort_int ~ ., icu_train)
+y <- icu_train$thirty_days_mort_int
+penalized_logistic_model <- cv.glmnet(x, y, family = 'binomial', alpha = 1)
+```
+
+3. Compare model prediction performance on the test set.
+
+The accuracy for logistic regression: `glm()`
+```{r}
+pred_log <- predict(logistic_model, icu_test, type = "response")
+prediction_log <- ifelse(pred_log < 0.5, 0, 1)
+mean(prediction_log == icu_test$thirty_days_mort_int)
+```
+
+The accuracy for logistic regression with LASSO penalty: `glmnet()`
+```{r}
+test_x <- model.matrix(icu_test$thirty_days_mort_int ~ ., icu_test)
+pred <- predict(penalized_logistic_model, newx = test_x, s = 1, type = "response")
+#With a threshold of 0.5, convert the prediction probability to 0 and 1
+prediction <- ifelse(pred < 0.5, 0, 1)
+mean(prediction == icu_test$thirty_days_mort_int)
+```
+
+When comparing the two performance, we can see that the accuracy for logistic regression with LASSO penalty is a little bit worse than logistic regression in this case. They are still very fairly comparable as they are usually both around 90% accurate. The numbers are different everytime simply because we are splitting the training/testing set at 'random', so the performance will be different every run.
